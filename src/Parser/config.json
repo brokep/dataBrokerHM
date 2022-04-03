@@ -1,0 +1,14 @@
+{
+  "proxy": [
+    {
+      "host": "zproxy.lum-superproxy.io:22225",
+      "user": "lum-customer-c_63565f4b-zone-resident-country-us",
+      "pass": ""
+    },
+    {
+      "host": "46.232.8.182:8000",
+      "user": "zQDR0n",
+      "pass": ""
+    }
+  ]
+}
