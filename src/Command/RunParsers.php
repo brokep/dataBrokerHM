@@ -28,6 +28,9 @@ class RunParsers extends Command implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
+    const TIMEOUT_15_MIN = 1000;
+    const MAX_PROCESSES = 3;
+
     /** @var Process[] */
     private array $processes = [];
     private Generator $parsers;
@@ -38,7 +41,6 @@ class RunParsers extends Command implements LoggerAwareInterface
         private SearchResultRepository $searchResultRepository
     ) {
         parent::__construct();
-        $this->parsers = $this->getNextParser();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -59,6 +61,7 @@ class RunParsers extends Command implements LoggerAwareInterface
         try {
             $res->setStatus(SearchRequestStatus::IN_PROGRESS);
             $this->searchRequestRepository->save($res);
+            $this->parsers = $this->getParsersIterator();
 
             $this->process($res);
         } catch (Throwable $e) {
@@ -79,7 +82,7 @@ class RunParsers extends Command implements LoggerAwareInterface
         while (true) {
             $this->checkRunningProcesses($request);
 
-            if (count($this->processes) < 3) {
+            if (count($this->processes) < self::MAX_PROCESSES) {
                 $this->addNewProcess($request);
             }
 
@@ -93,7 +96,7 @@ class RunParsers extends Command implements LoggerAwareInterface
         }
     }
 
-    private function getNextParser(): Generator
+    private function getParsersIterator(): Generator
     {
         foreach (Parsers::PARSERS as $parser) {
            yield $parser;
@@ -159,7 +162,7 @@ class RunParsers extends Command implements LoggerAwareInterface
             $request->getCity(),
             $request->getState() ?? ''
         ]);
-        $process->setTimeout(1000);
+        $process->setTimeout(self::TIMEOUT_15_MIN);
 
         $process->start();
         $this->processes[$parser['name']] = $process;
