@@ -14,6 +14,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
@@ -30,6 +31,7 @@ class RunParsers extends Command implements LoggerAwareInterface
 
     const TIMEOUT_15_MIN = 1000;
     const MAX_PROCESSES = 4;
+    private const OPT = 'env-name';
 
     /** @var Process[] */
     private array $processes = [];
@@ -41,6 +43,11 @@ class RunParsers extends Command implements LoggerAwareInterface
         private SearchResultRepository $searchResultRepository
     ) {
         parent::__construct();
+    }
+
+    protected function configure()
+    {
+        $this->addArgument(self::OPT, InputArgument::REQUIRED, 'set `dev` to make requests to test sites or `prod`');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -61,7 +68,7 @@ class RunParsers extends Command implements LoggerAwareInterface
         try {
             $res->setStatus(SearchRequestStatus::IN_PROGRESS);
             $this->searchRequestRepository->save($res);
-            $this->parsers = $this->getParsersIterator();
+            $this->parsers = $this->getParsersIterator($input->getArgument(self::OPT));
 
             $this->logger->info('Start process job ' . $res->getId());
 
@@ -99,10 +106,16 @@ class RunParsers extends Command implements LoggerAwareInterface
         }
     }
 
-    private function getParsersIterator(): Generator
+    private function getParsersIterator(string $env): Generator
     {
-        foreach (Parsers::PARSERS as $parser) {
-           yield $parser;
+        if ($env == 'dev') {
+            foreach (Parsers::TEST_PARSER as $parser) {
+                yield $parser;
+            }
+        } else {
+            foreach (Parsers::PARSERS as $parser) {
+                yield $parser;
+            }
         }
     }
 
@@ -136,6 +149,7 @@ class RunParsers extends Command implements LoggerAwareInterface
                             ->setCreatedAt(new DateTime());
                         $this->searchResultRepository->save($result);
                     }
+                    $this->logger->info('Successful response from '. $name);
                 }
 
             } else {

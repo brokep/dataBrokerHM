@@ -29,7 +29,7 @@ const link = 'https://www.floridaresidentsdirectory.com';
         await page.setUserAgent(UA);
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
-        await page.setDefaultTimeout(15000);
+        await page.setDefaultTimeout(30000);
         await page.setRequestInterception(true);
 
         page.on('request', (req) => {

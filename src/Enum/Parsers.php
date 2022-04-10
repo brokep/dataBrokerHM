@@ -22,6 +22,34 @@ class Parsers
     public const VOTER_RECORDS = 'voter_records';
     public const WHITE_PAGES = 'white_pages';
 
+    public const TEST_PARSER = [
+        '1' => [
+            'name' => 'FloridaResidentsDirectory1.com',
+            'path' => 'src/Parser/florida.js',
+            'path_to_deleter' => '',
+        ],
+        '2' => [
+            'name' => 'FloridaResidentsDirectory2.com',
+            'path' => 'src/Parser/florida.js',
+            'path_to_deleter' => '',
+        ],
+        '3' => [
+            'name' => 'FloridaResidentsDirectory3.com',
+            'path' => 'src/Parser/florida.js',
+            'path_to_deleter' => '',
+        ],
+        '4' => [
+            'name' => 'FloridaResidentsDirectory4.com',
+            'path' => 'src/Parser/florida.js',
+            'path_to_deleter' => '',
+        ],
+        '5' => [
+            'name' => 'FloridaResidentsDirectory5.com',
+            'path' => 'src/Parser/florida.js',
+            'path_to_deleter' => '',
+        ],
+    ];
+
     public const PARSERS = [
         self::SITE_411 => [
             'name' => '411.com',
@@ -50,7 +78,7 @@ class Parsers
         ],
         self::FLORIDA => [
             'name' => 'FloridaResidentsDirectory.com',
-            'path' => 'src/Parser/mylife.js',
+            'path' => 'src/Parser/florida.js',
             'path_to_deleter' => '',
         ],
         self::MY_LIFE => [
