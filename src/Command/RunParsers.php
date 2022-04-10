@@ -29,7 +29,7 @@ class RunParsers extends Command implements LoggerAwareInterface
     use LoggerAwareTrait;
 
     const TIMEOUT_15_MIN = 1000;
-    const MAX_PROCESSES = 3;
+    const MAX_PROCESSES = 4;
 
     /** @var Process[] */
     private array $processes = [];
@@ -63,17 +63,20 @@ class RunParsers extends Command implements LoggerAwareInterface
             $this->searchRequestRepository->save($res);
             $this->parsers = $this->getParsersIterator();
 
+            $this->logger->info('Start process job ' . $res->getId());
+
             $this->process($res);
         } catch (Throwable $e) {
             $this->logger->error(
                 "Something terrible",
-                ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]
+                ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString(), 'requestId' => $res->getId()]
             );
             $res->setStatus(SearchRequestStatus::ERROR);
             $this->searchRequestRepository->save($res);
             return self::FAILURE;
         }
 
+        $this->logger->info('Request finished ' . $res->getId());
         return self::SUCCESS;
     }
 
@@ -151,6 +154,8 @@ class RunParsers extends Command implements LoggerAwareInterface
             return;
         }
         $this->parsers->next();
+        $this->logger->info('Active processes: ' . count($this->processes));
+        $this->logger->info('Start searching: ' . $parser['name']);
 
         $projectPath = $this->params->get('kernel.project_dir');
         $path = sprintf('%s/%s', $projectPath, $parser['path']);

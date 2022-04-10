@@ -69,27 +69,40 @@
             </li>
 
             <!-- Layouts -->
-            <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-layout"></i>
-                <div data-i18n="Layouts">Layouts</div>
-              </a>
+{#            <li class="menu-item">#}
+{#              <a href="javascript:void(0);" class="menu-link menu-toggle">#}
+{#                <i class="menu-icon tf-icons bx bx-layout"></i>#}
+{#                <div data-i18n="Layouts">Layouts</div>#}
+{#              </a>#}
 
-              <ul class="menu-sub">
-                <li class="menu-item">
-                  <a href="{{ path('dashboard') }}" class="menu-link">
-                    <div data-i18n="Without menu">Without menu</div>
-                  </a>
-                </li>
-              </ul>
-            </li>
+{#              <ul class="menu-sub">#}
+{#                <li class="menu-item">#}
+{#                  <a href="{{ path('dashboard') }}" class="menu-link">#}
+{#                    <div data-i18n="Without menu">Without menu</div>#}
+{#                  </a>#}
+{#                </li>#}
+{#              </ul>#}
+{#            </li>#}
 
             <li class="menu-header small text-uppercase">
               <span class="menu-header-text">Last search requests</span>
             </li>
-            <li class="menu-item">
-              <a href="{{ path('dashboard') }}" class="menu-link">Fname, Lastname</a>
-            </li>
+            {% for search in searches %}
+              <li class="menu-item">
+                <a href="{{ path('dashboard', {search_id: search.id|default('')}) }}" class="menu-link">
+                  {{ search.fname|default('-') }}
+                  {{ search.lname|default('-') }},
+                  {{ search.city|default('-') }},
+                  {{ search.date|default('-') }}&nbsp;
+
+                  {% if search.status|default('-') == 'done' %}
+                    <span class="badge bg-success">done</span>
+                  {% else %}
+                    <span class="badge bg-info">in progress</span>
+                  {% endif %}
+                </a>
+              </li>
+            {% endfor %}
           </ul>
         </aside>
         <!-- / Menu -->
@@ -98,6 +111,11 @@
         <div class="layout-page">
           <!-- Navbar -->
 
+          {% for message in app.flashes('info') %}
+            <div role="alert" class="alert alert-info flash-messages text-center">
+              {{ message }}
+            </div>
+          {% endfor %}
           <nav
             class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
             id="layout-navbar"
@@ -111,6 +129,7 @@
 
             <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
               <!-- Search -->
+              <form action="{{ path('search') }}" target="_blank">
               <div class="navbar-nav align-items-center">
                 <div class="nav-item d-flex align-items-center">
                   <i class="bx bx-search fs-4 lh-0"></i>
@@ -119,29 +138,34 @@
                         class="form-control border-0 shadow-none"
                         placeholder="Firstname"
                         aria-label="Firstname"
+                        name="_firstname"
                 />
                   <input
                           type="text"
                           class="form-control border-0 shadow-none"
                           placeholder="Lastname"
                           aria-label="Lastname"
+                          name="_lastname"
                   />
                   <input
                           type="text"
                           class="form-control border-0 shadow-none"
                           placeholder="City"
                           aria-label="City"
+                          name="_city"
                   />
                   <input
                           type="text"
                           class="form-control border-0 shadow-none"
                           placeholder="State"
                           aria-label="State"
+                          name="_state"
                   />
-                  <input type="submit" value="Search" class="btn btn-primary"/>
+                  <input type="submit" value="Search" class="btn btn-outline-primary"/>
                 </div>
 <!--                <input class="github-button" type="submit" value="Search">-->
               </div>
+              </form>
               <!-- /Search -->
 
               <ul class="navbar-nav flex-row align-items-center ms-auto">
@@ -151,10 +175,28 @@
                 <li class="nav-item navbar-dropdown dropdown-user dropdown">
                   <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                     <div class="avatar avatar-online">
-                      <img src="{{ asset('img/person.png') }}" alt class="w-px-40 h-auto rounded-circle" />
+                      <img src="{{ asset('img/avatar.png') }}" alt class="w-px-40 h-auto rounded-circle" />
                     </div>
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="{{ asset('img/avatar.png') }}" alt class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-semibold d-block">John Doe</span>
+                            <small class="text-muted">Admin</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                    </li>
                     <li>
                       <a class="dropdown-item" href="#">
                         <i class="bx bx-user me-2"></i>
@@ -187,73 +229,40 @@
             <div class="container-xxl flex-grow-1 container-p-y">
 {#              <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Tables /</span> Basic Tables</h4>#}
 
-              <!-- Basic Bootstrap Table -->
-              <div class="card">
-                <h5 class="card-header">Florida.com</h5>
+              {% for parserName, items in results|default([]) %}
+                  <div class="card">
+                    <h5 class="card-header">{{ parserName }}</h5>
 
-                <div class="table-responsive text-nowrap">
-                  <table class="table">
-                    <thead>
-                      <tr>
-                        <th>Firstname</th>
-                        <th>Lastname</th>
-                        <th>Address</th>
-                        <th>Age</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody class="table-border-bottom-0">
-                      <tr>
-                        <td>Angular Project</td>
-                        <td>Albert Cook</td>
-                        <td>
-
-                        </td>
-                        <td>Active</td>
-                        <td>
-                          <a href="{{ path('dashboard') }}"><span class="badge bg-label-success me-1">Show</span></a>
-                          <a href="{{ path('dashboard') }}"><span class="badge bg-label-danger me-1">Delete</span></a>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <hr class="my-5" />
-
-              <!-- Basic Bootstrap Table -->
-              <div class="card">
-                <h5 class="card-header">Florida.com</h5>
-
-                <div class="table-responsive text-nowrap">
-                  <table class="table">
-                    <thead>
-                    <tr>
-                      <th>Firstname</th>
-                      <th>Lastname</th>
-                      <th>Address</th>
-                      <th>Age</th>
-                      <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="table-border-bottom-0">
-                    <tr>
-                      <td>Angular Project</td>
-                      <td>Albert Cook</td>
-                      <td>
-
-                      </td>
-                      <td><span class="badge bg-label-primary me-1">Active</span></td>
-                      <td>
-                        <a href="{{ path('dashboard') }}"><span class="badge bg-label-success me-1">Show</span></a>
-                        <a href="{{ path('dashboard') }}"><span class="badge bg-label-danger me-1">Delete</span></a>
-                      </td>
-                    </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <hr class="my-5" />
+                    <div class="table-responsive text-nowrap">
+                      <table class="table">
+                        <thead>
+                        <tr>
+                          <th>Firstname</th>
+                          <th>Lastname</th>
+                          <th>Address</th>
+                          <th>Age</th>
+                          <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                        {% for item in items %}
+                          <tr>
+                            <td>{{ item.fname|default('-') }}</td>
+                            <td>{{ item.lname|default('-') }}</td>
+                            <td>{{ item.address|default('-') }}</td>
+                            <td>{{ item.age|default('-') }}</td>
+                            <td>
+                              <a href="{{ item.link|default('-') }}" target="_blank"><span class="badge bg-label-success me-1">Show</span></a>
+                              <a href="#" class="delete-btn"><span class="badge bg-label-danger me-1">Delete</span></a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <hr class="my-5" />
+              {% endfor %}
 
           </div>
 
@@ -288,7 +297,11 @@
     <!-- Place this tag in your head or just before your close body tag. -->
     <script async defer src="{{ asset('js/dashboard/buttons.js') }}"></script>
 
-
+    <script>
+      $(document).ready(function(){
+        $(".flash-messages").delay(4000).slideUp(300);
+      });
+    </script>
 
   </body>
 </html>

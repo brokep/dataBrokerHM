@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ORM\Entity()
@@ -94,9 +95,6 @@ class SearchRequest
         return $this->city;
     }
 
-    /**
-     * @param string $city
-     */
     public function setCity(string $city): void
     {
         $this->city = $city;
@@ -107,10 +105,7 @@ class SearchRequest
         return $this->state;
     }
 
-    /**
-     * @param string $state
-     */
-    public function setState(string $state): void
+    public function setState(?string $state): void
     {
         $this->state = $state;
     }
@@ -142,6 +137,11 @@ class SearchRequest
     public function setUsers(ArrayCollection $users): void
     {
         $this->users = $users;
+    }
+
+    public function addUsers(UserInterface $users): void
+    {
+        $this->users->add($users);
     }
 
     public function getResults(): Collection

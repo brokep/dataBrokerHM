@@ -138,4 +138,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->searchRequests = $searchRequests;
     }
+
+    public function addSearchRequests(SearchRequest $searchRequests): void
+    {
+        $this->searchRequests->add($searchRequests);
+    }
 }
