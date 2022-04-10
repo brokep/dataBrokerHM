@@ -80,7 +80,6 @@ const link = 'https://www.floridaresidentsdirectory.com';
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
-        await browser.close();
         process.exit(0);
     }
 })();

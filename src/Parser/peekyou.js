@@ -38,14 +38,6 @@ const UA = userAgent || USER_AGENT_DEFAULT;
         })
 
         page = await browser.newPage()
-        await page.setViewport({
-            width: 1900 + Math.floor(Math.random() * 100),
-            height: 1080 + Math.floor(Math.random() * 100),
-            deviceScaleFactor: 1,
-            hasTouch: true,
-            isLandscape: false,
-            isMobile: false,
-        })
         await page.setUserAgent(UA);
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
@@ -75,7 +67,6 @@ const UA = userAgent || USER_AGENT_DEFAULT;
 
         await page.goto('https://www.peekyou.com/usa/florida/john_smith')
         await page.waitForTimeout(2000)
-        await page.screenshot({path: './screenshot_errrrr.png', fullPage: true});
         await page.waitForSelector('div#resultsContainerProfiles')
         await page.waitForTimeout(2000)
 

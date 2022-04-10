@@ -8,13 +8,12 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
-let page;
+let browser, page;
 let proxyNumber = 0;
-
 let firstname = process.argv[2];
 let lastname = process.argv[3];
 let city = process.argv[4];
-let state = process.argv[4];
+let state = process.argv[5];
 
 puppeteer.use(StealthPlugin());
 const USER_AGENT_DEFAULT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
@@ -26,6 +25,7 @@ const UA = userAgent || USER_AGENT_DEFAULT;
         browser = await puppeteer.launch({
             slowMo: 100,
             headless: true,
+            devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
                 '--no-sandbox',
@@ -33,18 +33,10 @@ const UA = userAgent || USER_AGENT_DEFAULT;
                 "--disable-gpu",
                 "--disable-dev-shm-usage"
             ],
-            userDataDir: path.resolve(__dirname, './puppeter_cache'),
-        })
+        });
+
 
         page = await browser.newPage()
-        await page.setViewport({
-            width: 1900 + Math.floor(Math.random() * 100),
-            height: 1080 + Math.floor(Math.random() * 100),
-            deviceScaleFactor: 1,
-            hasTouch: true,
-            isLandscape: false,
-            isMobile: false,
-        })
         await page.setUserAgent(UA);
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
@@ -84,8 +76,12 @@ const UA = userAgent || USER_AGENT_DEFAULT;
             let profileList = allProfileList.slice(0, 10);
             profileList.map(td => {
                 var linkd = td.querySelector('a.btn-primary').getAttribute('href');
+                let name = td.querySelector('span.name-given').textContent.trim().split(' ');
+                let first = name[0] || '';
+                let last = (name[1] || '') + ' ' + (name[2] || '');
                 res.push({
-                    name: td.querySelector('span.name-given').textContent.trim(),
+                    firstname: first,
+                    lastname: last,
                     link: 'https://www.truepeoplesearch.com/' + linkd,
                     age: td.querySelector('span.age').textContent.trim(),
                     location: td.querySelector('a.address').textContent.trim(),
@@ -98,7 +94,6 @@ const UA = userAgent || USER_AGENT_DEFAULT;
     } catch (e) {
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
-        page.close();
         process.exit(0);
     }
 })();

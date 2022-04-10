@@ -7,10 +7,12 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
-let page;
-
-let firstname = process.argv[2]; //Chaitram Samuel Davenport
+let browser, page;
+let proxyNumber = 0;
+let firstname = process.argv[2];
 let lastname = process.argv[3];
+let city = process.argv[4];
+let state = process.argv[5];
 
 puppeteer.use(StealthPlugin());
 
@@ -19,51 +21,24 @@ const link = 'https://www.advancedbackgroundchecks.com';
 
 (async () => {
     try {
-        if (config.browser.WS !== null) {
-            var browserWS = config.browser.WS;
 
-            try{
-                browser = await puppeteer.connect(browserWS);
-            }catch(e){
-                // console.log(e);
-            }
-        }
-        let proxyNumber = 1; // residental
-
-        if (typeof browser === 'undefined') {
-            browser = await puppeteer.launch({
-                slowMo: 100,
-                headless: false,
-                devtools: true,
-                args: [
-                    '--proxy-server=' + config.proxy[proxyNumber].host,
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    "--disable-gpu",
-                    "--disable-dev-shm-usage"
-                ],
-                userDataDir:  path.resolve(__dirname, './puppeter_cache'),
-            })
-            config.browser.WS = browser.wsEndpoint();
-
-            await fs.writeFileSync(path.resolve(__dirname, './config.json'), JSON.stringify(config));
-            // console.log(config);
-            // fs.writeFileSync('./config.json', config);
-            // fs.writeFileSync('./config.json', config);
-        }
+        browser = await puppeteer.launch({
+            slowMo: 100,
+            headless: true,
+            devtools: true,
+            args: [
+                '--proxy-server=' + config.proxy[proxyNumber].host,
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                "--disable-gpu",
+                "--disable-dev-shm-usage"
+            ],
+        });
 
         const userAgent = randomUseragent.getRandom();
         const UA = userAgent || USER_AGENT;
         page = await browser.newPage()
 
-        await page.setViewport({
-            width: 1920 + Math.floor(Math.random() * 100),
-            height: 1080 + Math.floor(Math.random() * 100),
-            deviceScaleFactor: 1,
-            hasTouch: false,
-            isLandscape: false,
-            isMobile: false,
-        })
         await page.setUserAgent(UA);
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
@@ -93,22 +68,12 @@ const link = 'https://www.advancedbackgroundchecks.com';
         });
 
         await page.goto(link)
-        await page.waitForTimeout(2000)
-        await page.screenshot({path: './screenshot_ad1.png', fullPage: true});
-        console.log(1)
-
         await page.waitForSelector('#form-search-name')
         await page.type('#search-name-name', firstname+' '+lastname);
         // await page.type('#search-name-address', location);
         await page.keyboard.press('Enter');
-        // // await page.click('#search');
-
-        await page.waitForTimeout(2000)
-        await page.screenshot({path: './screenshot_ad2.png', fullPage: true});
 
         await page.waitForSelector('#peoplelist2')
-
-
 
         const results = await page.evaluate(() => {
             let titleNodeList = Array.from(document.querySelectorAll('#peoplelist2 > div.card'));
@@ -141,7 +106,7 @@ const link = 'https://www.advancedbackgroundchecks.com';
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
-        page.close();
+        await page.close();
         process.exit(0);
     }
 })();

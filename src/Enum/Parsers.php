@@ -28,85 +28,85 @@ class Parsers
             'path' => 'src/Parser/florida.js',
             'path_to_deleter' => '',
         ],
-        self::ABCHECK => [
-            'name' => 'abcheck.com',
-            'path' => 'src/Parser/florida.js',
-            'path_to_deleter' => '',
-        ],
+//        self::ABCHECK => [
+//            'name' => 'abcheck.com',
+//            'path' => 'src/Parser/florida.js',
+//            'path_to_deleter' => '',
+//        ],
         self::CLUSTRMAPS => [
             'name' => 'clustrmaps.com',
-            'path' => 'src/Parser/florida.js',
+            'path' => 'src/Parser/clustrmaps.js',
             'path_to_deleter' => '',
         ],
         self::CYBER_B_C => [
             'name' => 'cyberBackgroundChecks.com',
-            'path' => 'src/Parser/florida.js',
+            'path' => 'src/Parser/cyberbackgroundchecks.js',
             'path_to_deleter' => '',
         ],
         self::FAST_PEOPLE => [
             'name' => 'fastPeopleSearch.com',
-            'path' => 'src/Parser/florida.js',
+            'path' => 'src/Parser/fastpeople.js',
             'path_to_deleter' => '',
         ],
         self::FLORIDA => [
             'name' => 'FloridaResidentsDirectory.com',
-            'path' => 'src/Parser/florida.js',
+            'path' => 'src/Parser/mylife.js',
             'path_to_deleter' => '',
         ],
         self::MY_LIFE => [
             'name' => 'mylife.com',
-            'path' => 'src/Parser/florida.js',
+            'path' => 'src/Parser/nuwber.js',
             'path_to_deleter' => '',
         ],
-        self::NUWBER => [
-            'name' => 'nuwber.com',
-            'path' => 'src/Parser/florida.js',
-            'path_to_deleter' => '',
-        ],
-        self::PEEKYOU => [
-            'name' => 'peekyou.com',
-            'path' => 'src/Parser/florida.js',
-            'path_to_deleter' => '',
-        ],
-        self::PEOPLE_FRIENDS => [
-            'name' => 'peopleFriends.com',
-            'path' => 'src/Parser/florida.js',
-            'path_to_deleter' => '',
-        ],
-        self::RADARIS => [
-            'name' => 'radaris.com',
-            'path' => 'src/Parser/florida.js',
-            'path_to_deleter' => '',
-        ],
-        self::SPOKEO => [
-            'name' => 'spokeo.com',
-            'path' => 'src/Parser/florida.js',
-            'path_to_deleter' => '',
-        ],
-        self::TRUEPEOPLE_SEARCH => [
-            'name' => 'truePeopleSearch.com',
-            'path' => 'src/Parser/florida.js',
-            'path_to_deleter' => '',
-        ],
-        self::USA_TRACE => [
-            'name' => 'usaTrace.com',
-            'path' => 'src/Parser/florida.js',
-            'path_to_deleter' => '',
-        ],
-        self::US_SEARCH => [
-            'name' => 'usSearch.com',
-            'path' => 'src/Parser/florida.js',
-            'path_to_deleter' => '',
-        ],
-        self::VOTER_RECORDS => [
-            'name' => 'voterRecords.com',
-            'path' => 'src/Parser/florida.js',
-            'path_to_deleter' => '',
-        ],
-        self::WHITE_PAGES => [
-            'name' => 'whitePages',
-            'path' => 'src/Parser/florida.js',
-            'path_to_deleter' => '',
-        ]
+//        self::NUWBER => [
+//            'name' => 'nuwber.com',
+//            'path' => 'src/Parser/florida.js',
+//            'path_to_deleter' => '',
+//        ],
+//        self::PEEKYOU => [
+//            'name' => 'peekyou.com',
+//            'path' => 'src/Parser/florida.js',
+//            'path_to_deleter' => '',
+//        ],
+//        self::PEOPLE_FRIENDS => [
+//            'name' => 'peopleFriends.com',
+//            'path' => 'src/Parser/florida.js',
+//            'path_to_deleter' => '',
+//        ],
+//        self::RADARIS => [
+//            'name' => 'radaris.com',
+//            'path' => 'src/Parser/florida.js',
+//            'path_to_deleter' => '',
+//        ],
+//        self::SPOKEO => [
+//            'name' => 'spokeo.com',
+//            'path' => 'src/Parser/florida.js',
+//            'path_to_deleter' => '',
+//        ],
+//        self::TRUEPEOPLE_SEARCH => [
+//            'name' => 'truePeopleSearch.com',
+//            'path' => 'src/Parser/florida.js',
+//            'path_to_deleter' => '',
+//        ],
+//        self::USA_TRACE => [
+//            'name' => 'usaTrace.com',
+//            'path' => 'src/Parser/florida.js',
+//            'path_to_deleter' => '',
+//        ],
+//        self::US_SEARCH => [
+//            'name' => 'usSearch.com',
+//            'path' => 'src/Parser/florida.js',
+//            'path_to_deleter' => '',
+//        ],
+//        self::VOTER_RECORDS => [
+//            'name' => 'voterRecords.com',
+//            'path' => 'src/Parser/florida.js',
+//            'path_to_deleter' => '',
+//        ],
+//        self::WHITE_PAGES => [
+//            'name' => 'whitePages',
+//            'path' => 'src/Parser/florida.js',
+//            'path_to_deleter' => '',
+//        ]
     ];
 }

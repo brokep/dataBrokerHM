@@ -7,9 +7,11 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
 let browser, page;
-let firstname = process.argv[2]; //Chaitram Samuel Davenport
+let proxyNumber = 0;
+let firstname = process.argv[2];
 let lastname = process.argv[3];
-let location = process.argv[4];
+let city = process.argv[4];
+let state = process.argv[5];
 
 puppeteer.use(StealthPlugin());
 
@@ -18,34 +20,18 @@ const link = 'https://clustrmaps.com';
 
 (async () => {
     try {
-        if (config.browser.WS !== null) {
-            var browserWS = config.browser.WS;
-
-            try{
-                browser = await puppeteer.connect({
-                    browserWSEndpoint: browserWS
-                });
-            } catch(e){
-                // console.log(e.message);
-            }
-        }
-        let proxyNumber = 1;
-
-        if (typeof browser === 'undefined') {
-            browser = await puppeteer.launch({
-                slowMo: 100,
-                headless: true,
-                devtools: true,
-                args: ['--proxy-server=' + config.proxy[proxyNumber].host, '--no-sandbox'],
-                userDataDir:  path.resolve(__dirname, './puppeter_cache'),
-            })
-            config.browser.WS = browser.wsEndpoint();
-
-            await fs.writeFileSync(path.resolve(__dirname, './config.json'), JSON.stringify(config));
-            // console.log(config);
-            // fs.writeFileSync('./config.json', config);
-            // fs.writeFileSync('./config.json', config);
-        }
+        browser = await puppeteer.launch({
+            slowMo: 100,
+            headless: true,
+            devtools: true,
+            args: [
+                '--proxy-server=' + config.proxy[proxyNumber].host,
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                "--disable-gpu",
+                "--disable-dev-shm-usage"
+            ],
+        });
 
         const userAgent = randomUseragent.getRandom();
         const UA = userAgent || USER_AGENT;
@@ -91,8 +77,12 @@ const link = 'https://clustrmaps.com';
                 if (i > 10) {
                     break;
                 }
+                let name = titleNodeList[i].querySelector('.mb-5 > .d-flex > .h4 > a > span').textContent.split(' ');
+                let first = name[0] || '';
+                let last = (name[1] || '') + ' ' + (name[2] || '');
                 res[i] = {
-                    name: titleNodeList[i].querySelector('.mb-5 > .d-flex > .h4 > a > span').textContent,
+                    firstname: first,
+                    lastname: last,
                     link: link + titleNodeList[i].querySelector('.mb-5 > .d-flex > .h4 > a').getAttribute('href'),
                     location: titleNodeList[i].querySelector('.mb-5 > .mb-1 > a > span').textContent,
                     };
@@ -104,7 +94,6 @@ const link = 'https://clustrmaps.com';
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
-        page.close();
         process.exit(0);
     }
 })();
