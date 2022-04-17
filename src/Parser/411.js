@@ -26,13 +26,15 @@ const UA = userAgent || USER_AGENT_DEFAULT;
         browser = await puppeteer.launch({
             slowMo: 100,
             headless: true,
+            devtools: true,
             args: [
+                '--proxy-server=' + config.proxy[proxyNumber].host,
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 "--disable-gpu",
                 "--disable-dev-shm-usage"
             ],
-        })
+        });
 
         page = await browser.newPage()
         await page.setUserAgent(UA);
@@ -57,6 +59,11 @@ const UA = userAgent || USER_AGENT_DEFAULT;
             }
         });
 
+        await page.authenticate({
+            username: config.proxy[proxyNumber].user,
+            password: config.proxy[proxyNumber].pass
+        });
+        // await page.goto('https://www.411.com/name/'+firstname+'-'+lastname+'/'+city+'?fs=1&searchedName='+firstname+'%20'+lastname+'&searchedLocation='+city)
         await page.goto('https://www.411.com/name/'+firstname+'-'+lastname+'/'+city+'-'+state+'?fs=1&searchedName='+firstname+'%20'+lastname+'&searchedLocation='+city+',%20'+state)
         await page.waitForSelector('div#person-serp-content')
 

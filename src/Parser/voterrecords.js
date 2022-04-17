@@ -8,10 +8,11 @@ const solve = require(path.resolve(__dirname, './captcha.js'));
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
 let browser, page;
-let firstname = process.argv[2]; //Chaitram Samuel Davenport
+let proxyNumber = 0;
+let firstname = process.argv[2];
 let lastname = process.argv[3];
-let location = process.argv[4];
-
+let city = process.argv[4];
+let state = process.argv[5];
 puppeteer.use(StealthPlugin());
 
 const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
@@ -19,34 +20,18 @@ const link = 'https://voterrecords.com/';
 
 (async () => {
     try {
-        if (config.browser.WS !== null) {
-            var browserWS = config.browser.WS;
-
-            try{
-                browser = await puppeteer.connect({
-                    browserWSEndpoint: browserWS
-                });
-            } catch(e){
-                // console.log(e.message);
-            }
-        }
-
-        let proxyNumber = 1;
-        if (typeof browser === 'undefined') {
-            browser = await puppeteer.launch({
-                slowMo: 100,
-                headless: true,
-                devtools: true,
-                args: ['--proxy-server=' + config.proxy[proxyNumber].host, '--no-sandbox'],
-                userDataDir:  path.resolve(__dirname, './puppeter_cache'),
-            })
-            config.browser.WS = browser.wsEndpoint();
-
-            await fs.writeFileSync(path.resolve(__dirname, './config.json'), JSON.stringify(config));
-            // console.log(config);
-            // fs.writeFileSync('./config.json', config);
-            // fs.writeFileSync('./config.json', config);
-        }
+        browser = await puppeteer.launch({
+            slowMo: 100,
+            headless: true,
+            devtools: true,
+            args: [
+                '--proxy-server=' + config.proxy[proxyNumber].host,
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                "--disable-gpu",
+                "--disable-dev-shm-usage"
+            ],
+        });
 
         const userAgent = randomUseragent.getRandom();
         const UA = userAgent || USER_AGENT;
@@ -72,11 +57,6 @@ const link = 'https://voterrecords.com/';
             } else {
                 req.continue();
             }
-        });
-
-        await page.authenticate({
-            username: config.proxy.user,
-            password: config.proxy.pass
         });
 
         await page.authenticate({
@@ -114,7 +94,6 @@ const link = 'https://voterrecords.com/';
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
-        page.close();
         process.exit(0);
     }
 })();

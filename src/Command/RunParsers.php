@@ -91,7 +91,7 @@ class RunParsers extends Command implements LoggerAwareInterface
         while (true) {
             $this->checkRunningProcesses($request);
 
-            if (count($this->processes) <= self::MAX_PROCESSES) {
+            if (count($this->processes) < self::MAX_PROCESSES) {
                 $this->addNewProcess($request);
             }
 

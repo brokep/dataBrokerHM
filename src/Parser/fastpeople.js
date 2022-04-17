@@ -65,12 +65,14 @@ const link = 'https://www.fastpeoplesearch.com';
         });
 
 
-        await page.goto(link);
+        // await page.goto(link);
+        await page.goto(link, { waitUntil: 'domcontentloaded' });
         // await page.goto(link + '/name/'+firstname+'-'+lastname+'_'+city+"-"+state);
         await page.waitForSelector('.search-form-buttons');
         await page.type('#search-name-name', firstname + ' ' + lastname);
-        await page.type('#search-name-address', location);
+        await page.type('#search-name-address', city + ' ' + state);
         await page.keyboard.press('Enter');
+        await page.click(".search-form-button-submit")
 
         await page.waitForSelector('.people-list')
 
@@ -97,6 +99,6 @@ const link = 'https://www.fastpeoplesearch.com';
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
-        // process.exit(0);
+        process.exit(0);
     }
 })();
