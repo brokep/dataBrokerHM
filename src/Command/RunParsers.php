@@ -30,7 +30,7 @@ class RunParsers extends Command implements LoggerAwareInterface
     use LoggerAwareTrait;
 
     const TIMEOUT_15_MIN = 1000;
-    const MAX_PROCESSES = 4;
+    const MAX_PROCESSES = 2;
     private const OPT = 'env-name';
 
     /** @var Process[] */
@@ -54,7 +54,7 @@ class RunParsers extends Command implements LoggerAwareInterface
     {
         $res = $this->searchRequestRepository->findBy(['status' => SearchRequestStatus::IN_PROGRESS]);
         if (count($res) > 0) {
-            $this->logger->info('Job is running');
+            $this->logger->info('There is active job running');
             return self::SUCCESS;
         }
 
@@ -69,8 +69,7 @@ class RunParsers extends Command implements LoggerAwareInterface
             $res->setStatus(SearchRequestStatus::IN_PROGRESS);
             $this->searchRequestRepository->save($res);
             $this->parsers = $this->getParsersIterator($input->getArgument(self::OPT));
-
-            $this->logger->info('Start process job ' . $res->getId());
+            $this->logger->info('Start process job: ' . $res->getId());
 
             $this->process($res);
         } catch (Throwable $e) {
@@ -92,7 +91,7 @@ class RunParsers extends Command implements LoggerAwareInterface
         while (true) {
             $this->checkRunningProcesses($request);
 
-            if (count($this->processes) < self::MAX_PROCESSES) {
+            if (count($this->processes) <= self::MAX_PROCESSES) {
                 $this->addNewProcess($request);
             }
 
@@ -109,10 +108,12 @@ class RunParsers extends Command implements LoggerAwareInterface
     private function getParsersIterator(string $env): Generator
     {
         if ($env == 'dev') {
+            $this->logger->info('Get dev parsers');
             foreach (Parsers::TEST_PARSER as $parser) {
                 yield $parser;
             }
         } else {
+            $this->logger->info('Get prod parsers');
             foreach (Parsers::PARSERS as $parser) {
                 yield $parser;
             }
@@ -168,8 +169,6 @@ class RunParsers extends Command implements LoggerAwareInterface
             return;
         }
         $this->parsers->next();
-        $this->logger->info('Active processes: ' . count($this->processes));
-        $this->logger->info('Start searching: ' . $parser['name']);
 
         $projectPath = $this->params->get('kernel.project_dir');
         $path = sprintf('%s/%s', $projectPath, $parser['path']);
@@ -185,5 +184,8 @@ class RunParsers extends Command implements LoggerAwareInterface
 
         $process->start();
         $this->processes[$parser['name']] = $process;
+        $this->logger->info('Active processes: ' . count($this->processes));
+        $this->logger->info('Start searching: ' . $parser['name']);
+        $this->logger->info('Search command: ' . $process->getCommandLine());
     }
 }
