@@ -65,11 +65,12 @@ const UA = userAgent || USER_AGENT_DEFAULT;
         });
 
         await page.goto('https://www.usatrace.com/people-search/'+firstname+'-'+lastname+'/'+city+'-'+state+'/')
-        await page.waitForSelector('div#person-serp-content')
+        console.log('https://www.usatrace.com/people-search/'+firstname+'-'+lastname+'/'+city+'-'+state+'/')
+        await page.waitForSelector('div#results_div')
 
         const results = await page.evaluate(() => {
-            let allProfileList = Array.from(document.querySelectorAll('div#person-serp-content a.pos-rl'));
-            let profileList = allProfileList.slice(0, 10);
+            let allProfileList = Array.from(document.querySelectorAll('table#usatrace-result-table tr'));
+            let profileList = allProfileList.slice(1, 10);
             let res = [];
             profileList.map(td => {
                 let item_data = td.querySelector('div.display-1').textContent.split(/\r?\n/)

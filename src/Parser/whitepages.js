@@ -4,27 +4,26 @@ const randomUseragent = require('random-useragent');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
-
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
-
-let browser, page;
+let page;
 let proxyNumber = 0;
+
 let firstname = process.argv[2];
 let lastname = process.argv[3];
 let city = process.argv[4];
 let state = process.argv[5];
-puppeteer.use(StealthPlugin());
 
-const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
-const link = 'https://www.whitepages.com';
+puppeteer.use(StealthPlugin());
+const USER_AGENT_DEFAULT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
+const userAgent = randomUseragent.getRandom();
+const UA = userAgent || USER_AGENT_DEFAULT;
 
 (async () => {
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
             headless: true,
-            devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
                 '--no-sandbox',
@@ -32,20 +31,26 @@ const link = 'https://www.whitepages.com';
                 "--disable-gpu",
                 "--disable-dev-shm-usage"
             ],
-        });
+            userDataDir: path.resolve(__dirname, './puppeter_cache'),
+        })
 
-        const userAgent = randomUseragent.getRandom();
-        const UA = userAgent || USER_AGENT;
-        page = await browser.newPage();
-
+        page = await browser.newPage()
+        await page.setViewport({
+            width: 1900 + Math.floor(Math.random() * 100),
+            height: 1080 + Math.floor(Math.random() * 100),
+            deviceScaleFactor: 1,
+            hasTouch: true,
+            isLandscape: false,
+            isMobile: false,
+        })
         await page.setUserAgent(UA);
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
-        await page.setDefaultTimeout(300000);
+        await page.setDefaultTimeout(30000);
         await page.setRequestInterception(true);
 
         page.on('request', (req) => {
-            if(
+            if (
                 req.resourceType() === 'image'
                 || req.resourceType() === 'stylesheet'
                 || req.resourceType() === 'font'
@@ -65,28 +70,8 @@ const link = 'https://www.whitepages.com';
             password: config.proxy[proxyNumber].pass
         });
 
-
-        await page.goto(link)
-        await page.waitForSelector('#desktopSearchBar')
-
-        await page.type('#desktopSearchBar', firstname+' '+lastname);
-        await page.type('.pa-3', location);
-
+        await page.goto('https://www.whitepages.com/name/'+firstname+'-'+lastname+'/'+city+'-'+state)
         await page.waitForTimeout(1000)
-
-        await page.screenshot({path: './screenshot_0.png', fullPage: true});
-
-       // await page.click('div.suggestions-wrapper div.suggestion-item:nth-child(0)');
-
-        await page.keyboard.press('Enter');
-        // await page.click('#search');
-
-        await page.waitForSelector('.container')
-
-        await page.click('a.ash--text:eq(0)');
-
-        await page.waitForTimeout(5000)
-
         await page.waitForSelector('#person-serp-content')
 
 
@@ -111,7 +96,7 @@ const link = 'https://www.whitepages.com';
         });
 
         console.log(JSON.stringify({message: results, error: null}));
-    } catch(e){
+    } catch (e) {
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
         process.exit(0);
