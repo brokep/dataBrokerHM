@@ -121,7 +121,6 @@ const link = 'https://nuwber.com';
 
         console.log(JSON.stringify({message: results, error: null}));
     } catch(e){
-        //await page.screenshot({path: './screenshot_err.png', fullPage: true});
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
         process.exit(0);

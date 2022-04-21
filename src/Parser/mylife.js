@@ -72,21 +72,22 @@ const link = 'https://www.mylife.com';
         // }
 
         await page.waitForSelector('#single-search-input');
-        await page.type('#single-search-input', firstname + ' ' + lastname);
+        await page.type('#single-search-input', firstname + ' ' + lastname +' '+city + ' ' + state);
         await page.keyboard.press('Enter');
         // await page.waitForSelector('ul.ais-InfiniteHits-list')
         // await page.$eval('ul.ais-InfiniteHits-list', (el) => el.scrollIntoView())
         await page.waitForSelector('.ais-InfiniteHits-item');
 
         let items = await page.evaluate(() => {
-            let titleNodeList = document.querySelectorAll('.ais-InfiniteHits-item');
+            let allProfileList = document.querySelectorAll('.ais-InfiniteHits-item');
             let res = [];
             let input;
-            for (let i = 0; i < titleNodeList.length; i++) {
-                if (i > 5) {
-                    break;
-                }
-                input = titleNodeList[i].querySelector(
+            if(!allProfileList.length) {
+                return res;
+            }
+            let profileList = allProfileList.slice(0, 10);
+            profileList.map(td => {
+                input = td.querySelector(
                     '.ais-InfiniteHits-item > .hit-container > .hit-container-left > .hit-profile > .hit-profile-name > a'
                 ).textContent;
                 input = input.split(',');
@@ -97,13 +98,13 @@ const link = 'https://www.mylife.com';
                     firstname: first,
                     lastname: last,
                     age: input[1],
-                    location: titleNodeList[i].querySelector(
+                    location: td.querySelector(
                         '.ais-InfiniteHits-item > .hit-container > .hit-container-left > .hit-profile > .hit-profile-name > p'
                     ).textContent,
-                    link: titleNodeList[i].querySelector(
+                    link: td.querySelector(
                         '.ais-InfiniteHits-item > .hit-container > .hit-container-left > .hit-profile > .hit-profile-name > a'
                     ).getAttribute('href'),};
-            }
+            });
             return res;
         });
         console.log(JSON.stringify({message: items, error: null}));

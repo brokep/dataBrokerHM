@@ -63,7 +63,6 @@ const UA = userAgent || USER_AGENT_DEFAULT;
             username: config.proxy[proxyNumber].user,
             password: config.proxy[proxyNumber].pass
         });
-        // await page.goto('https://www.411.com/name/'+firstname+'-'+lastname+'/'+city+'?fs=1&searchedName='+firstname+'%20'+lastname+'&searchedLocation='+city)
         await page.goto('https://www.411.com/name/'+firstname+'-'+lastname+'/'+city+'-'+state+'?fs=1&searchedName='+firstname+'%20'+lastname+'&searchedLocation='+city+',%20'+state)
         await page.waitForSelector('div#person-serp-content')
 

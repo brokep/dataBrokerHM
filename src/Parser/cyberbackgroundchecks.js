@@ -46,7 +46,7 @@ const UA = userAgent || USER_AGENT_DEFAULT;
         page.on('request', (req) => {
             if (
                 req.resourceType() === 'image'
-                || req.resourceType() === 'stylesheet'
+               || req.resourceType() === 'stylesheet'
                 || req.resourceType() === 'font'
                 || req.url().substring(0, 30) === 'amazon'
                 || req.url().substring(0, 30) === 'youtube'
