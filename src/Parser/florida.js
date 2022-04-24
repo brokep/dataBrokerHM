@@ -17,7 +17,7 @@ const link = 'https://www.floridaresidentsdirectory.com';
 
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: false,
+            headless: true,
             devtools: true,
             args: ['--no-sandbox'],
         });
