@@ -106,7 +106,6 @@ const link = 'https://www.advancedbackgroundchecks.com';
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
-        await page.close();
         process.exit(0);
     }
 })();

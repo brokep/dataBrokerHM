@@ -88,7 +88,6 @@ const UA = userAgent || USER_AGENT_DEFAULT;
     } catch (e) {
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
-        page.close();
         process.exit(0);
     }
 })();

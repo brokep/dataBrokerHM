@@ -66,10 +66,6 @@ const link = 'https://www.mylife.com';
 
 
         await page.goto(link)
-        // let cloudflare = (await page.$('#cf-wrapper')) || false;
-        // if (cloudflare !== false) {
-        //     solve(page)
-        // }
 
         await page.waitForSelector('#single-search-input');
         await page.type('#single-search-input', firstname + ' ' + lastname +' '+city + ' ' + state);

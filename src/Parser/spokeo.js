@@ -67,7 +67,7 @@ const link = 'https://www.spokeo.com';
         await page.goto(link)
         await page.waitForSelector('#homepage_hero_form')
 
-        await page.type('#homepage_hero_form  input[name="q"]', firstname+' '+lastname+' '+location);
+        await page.type('#homepage_hero_form  input[name="q"]', firstname+' '+lastname);
         await page.keyboard.press('Enter');
 
         await page.waitForSelector('.list-view')

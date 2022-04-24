@@ -56,11 +56,11 @@ class Parsers
             'path' => 'src/Parser/florida.js',
             'path_to_deleter' => '',
         ],
-//        self::ABCHECK => [
-//            'name' => 'abcheck.com',
-//            'path' => 'src/Parser/florida.js',
-//            'path_to_deleter' => '',
-//        ],
+        self::ABCHECK => [
+            'name' => 'abcheck.com',
+            'path' => 'src/Parser/florida.js',
+            'path_to_deleter' => '',
+        ],
         self::CLUSTRMAPS => [
             'name' => 'clustrmaps.com',
             'path' => 'src/Parser/clustrmaps.js',

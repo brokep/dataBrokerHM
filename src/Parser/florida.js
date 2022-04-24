@@ -52,7 +52,7 @@ const link = 'https://www.floridaresidentsdirectory.com';
         await page.waitForSelector('.main')
 
         await page.type('input[name="q[full_name]"]', firstname+' '+lastname);
-        await page.type('input[name="q[location]"]', city);
+        await page.type('input[name="q[location]"]', city + ', ' + state);
         await page.keyboard.press('Enter');
 
         await page.waitForSelector('#search-results')
