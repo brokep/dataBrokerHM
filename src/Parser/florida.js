@@ -17,7 +17,7 @@ const link = 'https://www.floridaresidentsdirectory.com';
 
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: true,
+            headless: false,
             devtools: true,
             args: ['--no-sandbox'],
         });
@@ -51,11 +51,14 @@ const link = 'https://www.floridaresidentsdirectory.com';
         await page.goto(link)
         await page.waitForSelector('.main')
 
+        await page.screenshot({path: 'var/screenshot1.png'});
         await page.type('input[name="q[full_name]"]', firstname+' '+lastname);
         await page.type('input[name="q[location]"]', city + ', ' + state);
         await page.keyboard.press('Enter');
+        await page.screenshot({path: 'var/screenshot2.png'});
 
         await page.waitForSelector('#search-results')
+        await page.screenshot({path: 'var/screenshot3.png'});
 
         let result = await page.evaluate(() => {
             let titleNodeList = document.querySelectorAll('.row.bb.element');
