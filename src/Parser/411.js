@@ -20,7 +20,7 @@ let state = process.argv[5];
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: true,
+            headless: false,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -34,7 +34,7 @@ let state = process.argv[5];
         page = await browser.newPage()
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
-        await page.setDefaultTimeout(30000);
+        await page.setDefaultTimeout(60 * 60000);
         await page.setRequestInterception(true);
 
         await page.setViewport({
@@ -67,29 +67,29 @@ let state = process.argv[5];
             password: config.proxy[proxyNumber].pass
         });
         await page.goto('https://www.411.com/name/'+firstname+'-'+lastname+'/'+city+'-'+state+'?fs=1&searchedName='+firstname+'%20'+lastname+'&searchedLocation='+city+',%20'+state)
-        await page.waitForSelector('div#person-serp-content')
+        await page.waitForSelector('body > div.container > div');
 
         const results = await page.evaluate(() => {
             let res = [];
-            let allProfileList = Array.from(document.querySelectorAll('div#person-serp-content a.pos-rl'));
+            let allProfileList = Array.from(document.querySelectorAll('body > div.container > div a.serp-card'));
             if(!allProfileList.length) {
                 return res;
             }
             let profileList = allProfileList.slice(0, 10);
-            profileList.map(td => {
-                let item_data = td.querySelector('div.display-1').textContent.trim().split(/\r?\n/);
-                let name = item_data[0].trim().split(' ')
+            profileList.map(profile => {
+                const name = (profile.querySelector('div.name-wrap').textContent.trim().split(/\r?\n/))[0];
+                const location = (profile.querySelector('div.name-wrap > div.person-location')
+                    .textContent.trim())
+                    .replace(/\r?\n|\r/g, " ") // replacing new-line char as whitespace
+                    .replace(/\s+/g, ' '); // removing extra spaces
+                const age = profile.querySelector('div.age-border > span.person-age').textContent.trim();
+                const link = 'https://www.411.com' + profile.getAttribute('href');
                 res.push({
-                    firstname: name[0] || '',
-                    lastname: (name[1] || '') + ' ' + (name[2] || ''),
-                    link: 'https://www.411.com' + td.getAttribute('href'),
-                    location: item_data[2].trim(),
-                    age: td.querySelector('div.subtitle-1').textContent.trim().replace('AGE', '').replace('s', '').trim()
+                    name, location, age, link
                 });
-            });
+            })
             return res;
         });
-
         console.log(JSON.stringify({message: results, error: null}));
     } catch (e) {
         console.log(JSON.stringify({message: null, error: e.message}));
