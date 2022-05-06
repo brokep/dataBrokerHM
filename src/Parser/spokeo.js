@@ -1,22 +1,19 @@
 const fs = require('fs');
 const path = require('path');
-const randomUseragent = require('random-useragent');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-
+puppeteer.use(StealthPlugin());
+const funcs = require('./functions');
 
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
 let browser, page;
-let proxyNumber = 0;
+let proxyNumber = funcs.randomInt(0, 2);
 let firstname = process.argv[2];
 let lastname = process.argv[3];
 let city = process.argv[4];
 let state = process.argv[5];
 
-puppeteer.use(StealthPlugin());
-
-const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
 const link = 'https://www.spokeo.com';
 
 (async () => {
@@ -34,38 +31,47 @@ const link = 'https://www.spokeo.com';
             ],
         });
 
-        const userAgent = randomUseragent.getRandom();
-        const UA = userAgent || USER_AGENT;
         page = await browser.newPage()
 
-        await page.setUserAgent(UA);
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
-        await page.setDefaultTimeout(15000);
+        await page.setDefaultTimeout(30000);
         await page.setRequestInterception(true);
 
+        await page.setViewport({
+            width: 1920 + Math.floor(Math.random() * 100),
+            height: 3000 + Math.floor(Math.random() * 100),
+            deviceScaleFactor: 1,
+            hasTouch: false,
+            isLandscape: false,
+            isMobile: false,
+        });
+
         page.on('request', (req) => {
-            if(
+            if (
                 req.resourceType() === 'image'
                 || req.resourceType() === 'stylesheet'
                 || req.resourceType() === 'font'
-                || req.url().substring(0, 30) === 'amazon'
-                || req.url().substring(0, 30) === 'youtube'
-                || req.url().substring(0, 30) === 'google'
-                || req.url().substring(0, 30) === 'adservice'
+                || req.url().includes('amazon')
+                || req.url().includes('youtube')
+                || req.url().includes('google')
+                || req.url().includes('adservice')
             ) {
                 req.abort();
             } else {
                 req.continue();
             }
         });
+
         await page.authenticate({
             username: config.proxy[proxyNumber].user,
             password: config.proxy[proxyNumber].pass
         });
 
         await page.goto(link)
-        await page.waitForSelector('#homepage_hero_form')
+        await page.waitForTimeout(6000);
+        await page.evaluate(() => window.stop());
+        await page.waitForSelector('#homepage_hero_form');
 
         await page.type('#homepage_hero_form  input[name="q"]', firstname+' '+lastname);
         await page.keyboard.press('Enter');
@@ -79,8 +85,10 @@ const link = 'https://www.spokeo.com';
                 if (i > 10) {
                     break;
                 }
+                let name = titleNodeList[i].querySelector('.title').textContent.split(', ')[0].split(' ');
                 res[i] = {
-                    name: titleNodeList[i].querySelector('.title').textContent.split(', ')[0],
+                    firstname: name[0] || '',
+                    lastname: (name[1] || '') + ' ' + (name[2] || ''),
                     link: link + titleNodeList[i].getAttribute('href'),
                     location: titleNodeList[i].querySelector('div > div > span').textContent,
                     age: titleNodeList[i].querySelector('.title').textContent.split(', ')[1],

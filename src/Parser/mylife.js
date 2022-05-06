@@ -1,21 +1,19 @@
 const fs = require('fs');
 const path = require('path');
-const randomUseragent = require('random-useragent');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
+const funcs = require('./functions');
 
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
 let browser, page;
-let proxyNumber = 0;
+let proxyNumber = funcs.randomInt(0, 2);
 let firstname = process.argv[2];
 let lastname = process.argv[3];
 let city = process.argv[4];
 let state = process.argv[5];
 
-puppeteer.use(StealthPlugin());
-
-const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
 const link = 'https://www.mylife.com';
 
 (async () => {
@@ -33,25 +31,30 @@ const link = 'https://www.mylife.com';
             ],
         });
 
-        const userAgent = randomUseragent.getRandom();
-        const UA = userAgent || USER_AGENT;
         page = await browser.newPage()
 
-        await page.setUserAgent(UA);
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
         await page.setDefaultTimeout(30000);
         await page.setRequestInterception(true);
+        await page.setViewport({
+            width: 1920 + Math.floor(Math.random() * 100),
+            height: 3000 + Math.floor(Math.random() * 100),
+            deviceScaleFactor: 1,
+            hasTouch: false,
+            isLandscape: false,
+            isMobile: false,
+        });
 
         page.on('request', (req) => {
-            if(
+            if (
                 req.resourceType() === 'image'
                 || req.resourceType() === 'stylesheet'
                 || req.resourceType() === 'font'
-                || req.url().substring(0, 30) === 'amazon'
-                || req.url().substring(0, 30) === 'youtube'
-                || req.url().substring(0, 30) === 'google'
-                || req.url().substring(0, 30) === 'adservice'
+                || req.url().includes('amazon')
+                || req.url().includes('youtube')
+                || req.url().includes('google')
+                || req.url().includes('adservice')
             ) {
                 req.abort();
             } else {
@@ -75,32 +78,31 @@ const link = 'https://www.mylife.com';
         await page.waitForSelector('.ais-InfiniteHits-item');
 
         let items = await page.evaluate(() => {
-            let allProfileList = document.querySelectorAll('.ais-InfiniteHits-item');
+            let titleNodeList = document.querySelectorAll('.ais-InfiniteHits-item');
             let res = [];
             let input;
-            if(!allProfileList.length) {
-                return res;
-            }
-            let profileList = allProfileList.slice(0, 10);
-            profileList.map(td => {
-                input = td.querySelector(
+            for (let i = 0; i < titleNodeList.length; i++) {
+                if (i > 10) {
+                    break;
+                }
+                input = titleNodeList[i].querySelector(
                     '.ais-InfiniteHits-item > .hit-container > .hit-container-left > .hit-profile > .hit-profile-name > a'
                 ).textContent;
                 input = input.split(',');
-                let name = input[0].split(' ');
-                let first = name[0] || '';
-                let last = (name[1] || '') + ' ' + (name[2] || '');
+
+                let name = input[0] || ' ';
+                name = name.trim().split(' ')
                 res[i] = {
-                    firstname: first,
-                    lastname: last,
+                    firstname: name[0] || '',
+                    lastname: (name[1] || '') + ' ' + (name[2] || ''),
                     age: input[1],
-                    location: td.querySelector(
+                    location: titleNodeList[i].querySelector(
                         '.ais-InfiniteHits-item > .hit-container > .hit-container-left > .hit-profile > .hit-profile-name > p'
                     ).textContent,
-                    link: td.querySelector(
+                    link: titleNodeList[i].querySelector(
                         '.ais-InfiniteHits-item > .hit-container > .hit-container-left > .hit-profile > .hit-profile-name > a'
                     ).getAttribute('href'),};
-            });
+            }
             return res;
         });
         console.log(JSON.stringify({message: items, error: null}));

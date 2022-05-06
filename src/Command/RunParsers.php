@@ -29,12 +29,9 @@ class RunParsers extends Command implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    const TIMEOUT_15_MIN = 1000;
-    const MAX_PROCESSES = 2;
+    private const TIMEOUT_8_MIN = 500;
     private const OPT = 'env-name';
 
-    /** @var Process[] */
-    private array $processes = [];
     private Generator $parsers;
 
     public function __construct(
@@ -88,21 +85,14 @@ class RunParsers extends Command implements LoggerAwareInterface
 
     private function process(SearchRequest $request)
     {
-        while (true) {
-            $this->checkRunningProcesses($request);
+        foreach ($this->parsers as $parser) {
+            $process = $this->addNewProcess($request, $parser);
 
-            if (count($this->processes) < self::MAX_PROCESSES) {
-                $this->addNewProcess($request);
-            }
-
-            if (count($this->processes) === 0) {
-                $request->setStatus(SearchRequestStatus::DONE);
-                $this->searchRequestRepository->save($request);
-                return;
-            }
-
-            sleep(1);
+            $this->checkRunningProcess($request, $process, $parser);
         }
+
+        $request->setStatus(SearchRequestStatus::DONE);
+        $this->searchRequestRepository->save($request);
     }
 
     private function getParsersIterator(string $env): Generator
@@ -120,10 +110,13 @@ class RunParsers extends Command implements LoggerAwareInterface
         }
     }
 
-    private function checkRunningProcesses(SearchRequest $res)
+    private function checkRunningProcess(SearchRequest $res, Process $process, $parser)
     {
-        foreach ($this->processes as $name => $process) {
+        $tryCount = 1;
+        while (true) {
             if ($process->isRunning()) {
+                sleep(1);
+
                 continue;
             }
 
@@ -131,10 +124,20 @@ class RunParsers extends Command implements LoggerAwareInterface
                 $out = json_decode($process->getOutput(), true);
 
                 if ($out['error'] !== null) {
-                    $this->logger->error("Error inside parser", [
-                        'name' => $name,
+                    $this->logger->error("Error inside parser. Trying again. Try count: $tryCount", [
+                        'name' => $parser['name'],
                         'error' => $out['error'],
                     ]);
+
+                    if ($tryCount > 3) {
+                        $this->logger->info('Try count exceed. Name: '. $parser['name']);
+                        unset($process);
+                        break;
+                    }
+
+                    $tryCount++;
+                    $process = $process->restart();
+                    continue;
                 }
                 if (isset($out['message']) && $out['error'] === null) {
                     foreach ($out['message'] as $item) {
@@ -145,31 +148,34 @@ class RunParsers extends Command implements LoggerAwareInterface
                             ->setAge($item['age'] ?? '')
                             ->setAddress($item['location'] ?? '')
                             ->setLink($item['link'] ?? '')
-                            ->setParserName($name)
+                            ->setParserName($parser['name'])
                             ->setSearchRequest($res)
                             ->setCreatedAt(new DateTime());
                         $this->searchResultRepository->save($result);
                     }
-                    $this->logger->info('Successful response from '. $name);
+                    $this->logger->info('Successful response from '. $parser['name']);
+                    unset($process);
+                    return;
                 }
 
             } else {
                 $out = $process->getErrorOutput();
-                $this->logger->error('Error in process', ['name' => $name, 'out' => $out]);
-            }
+                $this->logger->error('Error in process. Try again', ['name' => $parser['name'], 'out' => $out]);
 
-            unset($this->processes[$name]);
+                if ($tryCount > 3) {
+                    $this->logger->info('Try count exceed. Name: '. $parser['name']);
+                    unset($process);
+                    break;
+                }
+
+                $tryCount++;
+                $process = $process->restart();
+            }
         }
     }
 
-    private function addNewProcess(SearchRequest $request)
+    private function addNewProcess(SearchRequest $request, $parser): Process
     {
-        $parser = $this->parsers->current();
-        if ($parser === null) {
-            return;
-        }
-        $this->parsers->next();
-
         $projectPath = $this->params->get('kernel.project_dir');
         $path = sprintf('%s/%s', $projectPath, $parser['path']);
         $process = new Process([
@@ -180,12 +186,11 @@ class RunParsers extends Command implements LoggerAwareInterface
             $request->getCity(),
             $request->getState() ?? ''
         ]);
-        $process->setTimeout(self::TIMEOUT_15_MIN);
+        $process->setTimeout(self::TIMEOUT_8_MIN);
 
         $process->start();
-        $this->processes[$parser['name']] = $process;
-        $this->logger->info('Active processes: ' . count($this->processes));
         $this->logger->info('Start searching: ' . $parser['name']);
-        $this->logger->info('Search command: ' . $process->getCommandLine());
+
+        return $process;
     }
 }

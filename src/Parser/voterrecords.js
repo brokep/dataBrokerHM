@@ -1,8 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const randomUseragent = require('random-useragent');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
+const funcs = require('./functions');
 
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
@@ -12,16 +13,12 @@ let firstname = process.argv[2];
 let lastname = process.argv[3];
 let city = process.argv[4];
 let state = process.argv[5];
-puppeteer.use(StealthPlugin());
-
-const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
-const link = 'https://voterrecords.com/';
 
 (async () => {
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: true,
+            headless: false,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -32,25 +29,31 @@ const link = 'https://voterrecords.com/';
             ],
         });
 
-        const userAgent = randomUseragent.getRandom();
-        const UA = userAgent || USER_AGENT;
         page = await browser.newPage()
 
-        await page.setUserAgent(UA);
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
         await page.setDefaultTimeout(15000);
         await page.setRequestInterception(true);
 
+        await page.setViewport({
+            width: 1920 + Math.floor(Math.random() * 100),
+            height: 3000 + Math.floor(Math.random() * 100),
+            deviceScaleFactor: 1,
+            hasTouch: false,
+            isLandscape: false,
+            isMobile: false,
+        });
+
         page.on('request', (req) => {
-            if(
+            if (
                 req.resourceType() === 'image'
                 || req.resourceType() === 'stylesheet'
                 || req.resourceType() === 'font'
-                || req.url().substring(0, 30) === 'amazon'
-                || req.url().substring(0, 30) === 'youtube'
-                || req.url().substring(0, 30) === 'google'
-                || req.url().substring(0, 30) === 'adservice'
+                || req.url().includes('amazon')
+                || req.url().includes('youtube')
+                || req.url().includes('google')
+                || req.url().includes('adservice')
             ) {
                 req.abort();
             } else {
@@ -63,25 +66,29 @@ const link = 'https://voterrecords.com/';
             password: config.proxy[proxyNumber].pass
         });
 
-        await page.goto(link)
-        await page.waitForSelector('#searchForm')
-
-        await page.type('input[name="search"]', firstname+' '+lastname+' '+location);
-        await page.keyboard.press('Enter');
+        await page.goto('https://voterrecords.com/voters/'+city+'-us/'+firstname+'+'+lastname+'/1');
+        // await page.waitForSelector('#searchForm')
+        // await page.type('#searchtxt', firstname+' '+lastname);
+        // await page.keyboard.press('Enter');
         // await page.click('#search');
         await page.waitForSelector('#page-content-wrapper')
 
         let result = await page.evaluate(() => {
-            let titleNodeList = document.querySelectorAll('table.table.table-striped tbody tr');            console.log(titleNodeList)
+            let titleNodeList = document.querySelectorAll('table.table.table-striped tbody tr');
             let res = [];
-            for (let i = 0; i < titleNodeList.length - 1; i++) {
+            console.log('TEST');
+            //because first element 0 is not valid
+            for (let i = 1; i < titleNodeList.length - 1; i++) {
                 if (i > 10) {
                     break;
                 }
-                res[i] = {
-                    name: titleNodeList[i+1].querySelector('tr td:nth-child(2) h4').textContent,
-                    location: titleNodeList[i+1].querySelector('tr td:nth-child(2) p').textContent,
-                    link: titleNodeList[i+1].querySelector('tr td:nth-child(2) h4 a').getAttribute('href')
+
+                console.log('TEST');
+                console.log('td:nth-child(1) > span > span.lead > a > span');
+                res[i-1] = {
+                    name: titleNodeList[i].querySelector('td:nth-child(1) > span > span.lead > a > span').textContent,
+                    // location: titleNodeList[i].querySelector('tr td:nth-child(2) p').textContent,
+                    link: titleNodeList[i].getAttribute('data-href')
                     // location: document.querySelector('table.table.table-striped tbody tr:nth-child('+(i+1)+') td:nth-child(2) span').textContent,
                     // gender: document.querySelector('table.table.table-striped tbody tr:nth-child('+(i+1)+') td:nth-child(1) span.hidden-xs span[itemprop="gender"]').textContent
                 };
@@ -93,6 +100,6 @@ const link = 'https://voterrecords.com/';
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
-        process.exit(0);
+        // process.exit(0);
     }
 })();

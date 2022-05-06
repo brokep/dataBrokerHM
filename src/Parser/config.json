@@ -1,14 +1,14 @@
 {
   "proxy": [
     {
-      "host": "zproxy.lum-superproxy.io:22225",
-      "user": "lum-customer-c_63565f4b-zone-resident-country-us",
-      "pass": "ho5joiv7ksph"
+      "host": "46.232.10.41:8000",
+      "user": "KEPTxK",
+      "pass": "9Wu73E"
     },
     {
-      "host": "",
-      "user": "",
-      "pass": ""
+      "host": "zproxy.lum-superproxy.io:22225",
+      "user": "lum-customer-c_63565f4b-zone-resident-country-us",
+      "pass": "gz19phngztbd"
     }
   ]
 }

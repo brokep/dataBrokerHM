@@ -1,4 +1,3 @@
-const randomUseragent = require('random-useragent');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 let browser, page;
@@ -9,7 +8,6 @@ let state = process.argv[5];
 
 puppeteer.use(StealthPlugin());
 
-const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
 const link = 'https://www.floridaresidentsdirectory.com';
 
 (async () => {
@@ -22,11 +20,8 @@ const link = 'https://www.floridaresidentsdirectory.com';
             args: ['--no-sandbox'],
         });
 
-        const userAgent = randomUseragent.getRandom();
-        const UA = userAgent || USER_AGENT;
         page = await browser.newPage()
 
-        await page.setUserAgent(UA);
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
         await page.setDefaultTimeout(30000);
@@ -51,14 +46,11 @@ const link = 'https://www.floridaresidentsdirectory.com';
         await page.goto(link)
         await page.waitForSelector('.main')
 
-        await page.screenshot({path: 'var/screenshot1.png'});
         await page.type('input[name="q[full_name]"]', firstname+' '+lastname);
         await page.type('input[name="q[location]"]', city + ', ' + state);
         await page.keyboard.press('Enter');
-        await page.screenshot({path: 'var/screenshot2.png'});
 
         await page.waitForSelector('#search-results')
-        await page.screenshot({path: 'var/screenshot3.png'});
 
         let result = await page.evaluate(() => {
             let titleNodeList = document.querySelectorAll('.row.bb.element');

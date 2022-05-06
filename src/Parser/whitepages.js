@@ -1,23 +1,18 @@
 const fs = require('fs');
 const path = require('path');
-const randomUseragent = require('random-useragent');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
+const funcs = require('./functions');
 
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
 let browser, page;
-let proxyNumber = 0;
-
+let proxyNumber = 0; //always cheap proxy
 let firstname = process.argv[2];
 let lastname = process.argv[3];
 let city = process.argv[4];
 let state = process.argv[5];
-
-puppeteer.use(StealthPlugin());
-const USER_AGENT_DEFAULT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
-const userAgent = randomUseragent.getRandom();
-const UA = userAgent || USER_AGENT_DEFAULT;
 
 (async () => {
     try {
@@ -35,52 +30,57 @@ const UA = userAgent || USER_AGENT_DEFAULT;
         });
 
         page = await browser.newPage()
-        await page.setUserAgent(UA);
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
         await page.setDefaultTimeout(30000);
         await page.setRequestInterception(true);
+
+        await page.setViewport({
+            width: 1920 + Math.floor(Math.random() * 100),
+            height: 3000 + Math.floor(Math.random() * 100),
+            deviceScaleFactor: 1,
+            hasTouch: false,
+            isLandscape: false,
+            isMobile: false,
+        });
 
         page.on('request', (req) => {
             if (
                 req.resourceType() === 'image'
                 || req.resourceType() === 'stylesheet'
                 || req.resourceType() === 'font'
-                || req.url().substring(0, 30) === 'amazon'
-                || req.url().substring(0, 30) === 'youtube'
-                || req.url().substring(0, 30) === 'google'
-                || req.url().substring(0, 30) === 'adservice'
+                || req.url().includes('amazon')
+                || req.url().includes('youtube')
+                || req.url().includes('google')
+                || req.url().includes('adservice')
             ) {
                 req.abort();
             } else {
                 req.continue();
             }
         });
-
         await page.authenticate({
             username: config.proxy[proxyNumber].user,
             password: config.proxy[proxyNumber].pass
         });
 
         await page.goto('https://www.whitepages.com/name/'+firstname+'-'+lastname+'/'+city+'-'+state)
-        await page.waitForTimeout(1000)
-        await page.waitForSelector('#person-serp-content')
+        await page.waitForSelector('.results-container')
 
 
         const results = await page.evaluate(() => {
-            let titleNodeList = Array.from(document.querySelectorAll('#person-serp-content > div:nth-child(3) > div:nth-child(1) > div > a[rel="nofollow"]'));
+            let titleNodeList = Array.from(document.querySelectorAll('.serp-card'));
             let res = [];
             titleNodeList.map(td => {
-                var linkd = td.querySelector('a.pos-rl').getAttribute('href');
-                if(linkd.indexOf('/checkout/') > -1) {
-                    return [];
-                }
+                var linkd = td.getAttribute('href');
 
+                let location = td.querySelector('div.name-wrap > .person-location').textContent.trim();
+                let locationPure = location.replace(/\n/g, '').replace(/ +(?= )/g,'');
                 res.push({
-                    name: td.querySelector('div.display-1').textContent,
-                    link: 'https://www.whitepages.com/' + linkd,
-                    location: td.querySelector('div.body-1').textContent,
-                    age: td.querySelector('div.subtitle-1').textContent,
+                    name: td.querySelector('div.name-wrap').childNodes[0].textContent.trim(),
+                    link: 'https://www.whitepages.com' + linkd,
+                    location: locationPure,
+                    age: td.querySelector('div.age-border > .person-age').textContent.trim(),
                 });
             });
 

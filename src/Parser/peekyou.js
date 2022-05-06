@@ -1,32 +1,24 @@
-// https://www.peekyou.com
-// state full (florida)
-
 const fs = require('fs');
 const path = require('path');
-const randomUseragent = require('random-useragent');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
+const funcs = require('./functions');
 
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
 let browser, page;
-let proxyNumber = 0;
-
+let proxyNumber = funcs.randomInt(0, 2);
 let firstname = process.argv[2];
 let lastname = process.argv[3];
 let city = process.argv[4];
-let state = process.argv[4];
-
-puppeteer.use(StealthPlugin());
-const USER_AGENT_DEFAULT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
-const userAgent = randomUseragent.getRandom();
-const UA = userAgent || USER_AGENT_DEFAULT;
+let state = process.argv[5];
 
 (async () => {
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: true,
+            headless: false,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -38,21 +30,29 @@ const UA = userAgent || USER_AGENT_DEFAULT;
         });
 
         page = await browser.newPage()
-        await page.setUserAgent(UA);
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
         await page.setDefaultTimeout(30000);
         await page.setRequestInterception(true);
+
+        await page.setViewport({
+            width: 1920 + Math.floor(Math.random() * 100),
+            height: 3000 + Math.floor(Math.random() * 100),
+            deviceScaleFactor: 1,
+            hasTouch: false,
+            isLandscape: false,
+            isMobile: false,
+        });
 
         page.on('request', (req) => {
             if (
                 req.resourceType() === 'image'
                 || req.resourceType() === 'stylesheet'
                 || req.resourceType() === 'font'
-                || req.url().substring(0, 30) === 'amazon'
-                || req.url().substring(0, 30) === 'youtube'
-                || req.url().substring(0, 30) === 'google'
-                || req.url().substring(0, 30) === 'adservice'
+                || req.url().includes('amazon')
+                || req.url().includes('youtube')
+                || req.url().includes('google')
+                || req.url().includes('adservice')
             ) {
                 req.abort();
             } else {
