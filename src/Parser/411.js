@@ -20,7 +20,7 @@ let state = process.argv[5];
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: false,
+            headless: true,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -34,7 +34,7 @@ let state = process.argv[5];
         page = await browser.newPage()
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
-        await page.setDefaultTimeout(60 * 60000);
+        await page.setDefaultTimeout(30000);
         await page.setRequestInterception(true);
 
         await page.setViewport({
