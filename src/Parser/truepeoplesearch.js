@@ -20,7 +20,7 @@ let state = process.argv[5];
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: false,
+            headless: true,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -35,7 +35,7 @@ let state = process.argv[5];
 
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
-        await page.setDefaultTimeout(30000);
+        await page.setDefaultTimeout(45000);
         await page.setRequestInterception(true);
 
         await page.setViewport({
@@ -69,31 +69,69 @@ let state = process.argv[5];
         });
 
         await page.goto('https://www.truepeoplesearch.com');
-        await page.waitForTimeout(6000);
-        await page.evaluate(() => window.stop());
+        await page.waitForSelector('#divSearchFormContainer');
+        // await page.waitForSelector('#blocker-selector');
+        // await page.waitForTimeout(6000);
+        // await page.evaluate(() => window.stop());
 
-        await page.type('input#id-mf-n', firstname + ' ' + lastname);
-        await page.click('button#btnSubmit-mf-n');
+        await page.type('#id-d-n', firstname + ' ' + lastname);
+        await page.type('#id-d-loc-name', state);
+        await page.click('#btnSubmit-d-n');
 
-        const results = await page.evaluate(() => {
+        // await page.waitForSelector('#blocker-selector');
+        await page.waitForSelector('div.content-center');
+        await page.waitForTimeout(5000);
+
+        let results = await page.evaluate(() => {
             let res = [];
-            let allProfileList = Array.from(document.querySelectorAll('div.content-center div.card-summary'));
+            let allProfileList = Array.from(document.querySelectorAll('div.content-center div.card'));
             if(!allProfileList.length) {
                 return res;
             }
             let profileList = allProfileList.slice(0, 10);
             profileList.map(td => {
-                let linkd = td.getAttribute('data-detail-link');
+                const parseNameAgeLocation = (str) => {
+                    const splitByNewLine = str.split('\n');
+                    const freshArray = [];
+                    let age;
+                    let location;
+                    let name;
+                    for (const el of splitByNewLine) {
+                        if (el) freshArray.push(el.trim());
+                    }
+
+                    name = freshArray[0];
+
+                    for (let i = 0; i < freshArray.length; i++) {
+                        if (freshArray[i] == 'Age') age = freshArray[i + 1];
+                        if (freshArray[i] == 'Lives in') location = freshArray[i + 1];
+                    }
+
+                    return {name, age, location};
+                }
+
+                const parseLink = (str) => {
+                    const hrefIndex = str.indexOf('href');
+                    const start = str.indexOf('"', hrefIndex);
+                    const end = str.indexOf('"', start + 1);
+                    const linkd = str.slice(start + 1, end);
+                    return linkd;
+                }
+                const linkData = td.querySelector('div:nth-child(1)').innerHTML;
+                const cardData = td.querySelector('div:nth-child(1)').textContent;
+                const {name, age, location} = parseNameAgeLocation(cardData);
+                const linkd = parseLink(linkData);
                 res.push({
-                    name: td.querySelector('div.h4').textContent.trim(),
-                    link: 'https://www.truepeoplesearch.com/' + linkd,
-                    age: td.querySelectorAll('div.col-md-8 div')[1].querySelector('span.content-value').textContent.trim(),
-                    location: td.querySelectorAll('div.col-md-8 div')[2].querySelector('span.content-value').textContent.trim(),
+                    name,
+                    age,
+                    location,
+                    link: 'https://www.truepeoplesearch.com' + linkd
                 });
             });
             return res;
         });
-
+        results = results.slice(2);
+        console.log(results);
         console.log(JSON.stringify({message: results, error: null}));
     } catch (e) {
         console.log(JSON.stringify({message: null, error: e.message}));
