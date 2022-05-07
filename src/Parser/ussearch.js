@@ -20,7 +20,7 @@ let state = process.argv[5];
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: false,
+            headless: true,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -69,6 +69,7 @@ let state = process.argv[5];
         });
 
         await page.goto('https://www.ussearch.com/results/?firstName='+firstname+'&middleInitial=&lastName='+lastname+'&city='+city+'&state='+state+'&age=')
+        // await page.waitForSelector('#blocker-selector')
         await page.waitForSelector('section#people')
 
         const results = await page.evaluate(() => {
@@ -79,18 +80,17 @@ let state = process.argv[5];
             }
             let profileList = allProfileList.slice(0, 10);
             profileList.map(td => {
-                let linkd = td.querySelector('li.name').getAttribute('href'); //TODO
+                // let linkd = td.querySelector('li.name').getAttribute('href'); // Link not available
+                const locations = Array.from(td.querySelectorAll('li.location > ul > li'))
                 res.push({
-                    name: td.querySelector('h4.link-name').textContent.trim(), //TODO
-                    link: 'https://www.ussearch.com/' + linkd,
-                    location: td.querySelector('li.location').textContent.replace('Locations','').trim(), //TODO
+                    name: td.querySelector('li.name').textContent.trim(),
+                    location: locations[0].textContent,
                     age: td.querySelector('li.age').textContent.replace('years old', '').trim(),
                 });
             });
             return res;
         });
-
-
+        console.log(results);
         console.log(JSON.stringify({message: results, error: null}));
     } catch (e) {
         console.log(JSON.stringify({message: null, error: e.message}));
