@@ -73,19 +73,6 @@ let state = process.argv[5];
         await page.waitForSelector('#usatrace-result-table')
 
         const results = await page.evaluate(() => {
-            // let allProfileList = Array.from(document.querySelectorAll('table#usatrace-result-table tr'));
-            // let profileList = allProfileList.slice(1, 10);
-            // let res = [];
-            // profileList.map(td => {
-            //     let item_data = td.querySelector('div.display-1').textContent.split(/\r?\n/)
-            //     res.push({
-            //         name: item_data[0].trim(),
-            //         link: 'https://www.411.com/' + td.getAttribute('href'),
-            //         location: item_data[2].trim(),
-            //         age: td.querySelector('div.subtitle-1').textContent.trim().replace('AGE', '').replace('s', '').trim()
-            //     });
-            // });
-            // return res;
             const res = [];
             const table = Array.from(document.querySelectorAll('#usatrace-result-table > tbody > tr'));
 
