@@ -20,7 +20,7 @@ let state = process.argv[5];
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: false,
+            headless: true,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -73,23 +73,47 @@ let state = process.argv[5];
 
         const results = await page.evaluate(() => {
             let res = [];
-            let allProfileList = Array.from(document.querySelectorAll('div.search-results__content div.card-hover'));
+            let allProfileList = Array.from(document.querySelectorAll('div.card.card-hover'));
             if(!allProfileList.length) {
                 return res;
             }
             let profileList = allProfileList.slice(0, 10);
             profileList.map(td => {
-                var linkd = td.querySelector('a.btn-primary').getAttribute('href');
-                let name = td.querySelector('span.name-given').textContent.trim().split(' ');
-                let first = name[0] || '';
-                let last = (name[1] || '') + ' ' + (name[2] || '');
-                res.push({
-                    firstname: first,
-                    lastname: last,
-                    link: 'https://www.truepeoplesearch.com/' + linkd,
-                    age: td.querySelector('span.age').textContent.trim(),
-                    location: td.querySelector('a.address').textContent.trim(),
-                });
+                const nameAndAgeContent = td.querySelector('div.card-header.bg-white > div > div').textContent.trim();
+                const findName = (str) => {
+                    const lastPos = str.indexOf('\n');
+                    return str.slice(0, lastPos);
+                }
+                const findAge = (str) => {
+                    const splitByNewLine = str.split('\n');
+                    const fressArray = [];
+                    for (const el of splitByNewLine) {
+                        const trimed = el.trim();
+                        if (trimed) fressArray.push(trimed);
+                    }
+                    for (let i = 0; i < fressArray.length; i++) {
+                        if (fressArray[i] === 'Age:') return fressArray[i + 1];
+                    }
+                    return 'NOT_FOUND';
+                }
+                const findLocation = (str) => {
+                    const splitByNewLine = str.split('\n');
+                    const fressArray = [];
+                    for (const el of splitByNewLine) {
+                        const trimed = el.trim();
+                        if (trimed) fressArray.push(trimed);
+                    }
+                    for (let i = 0; i < fressArray.length; i++) {
+                        if (fressArray[i] === 'Lives at') return fressArray[i + 1];
+                    }
+                    return 'NOT_FOUND';
+                }
+                const name = findName(nameAndAgeContent);
+                let age = findAge(nameAndAgeContent);
+                if (!age) age = 'NOT_FOUND';
+                const locationContent = td.querySelector('div.card-body.pt-3.pb-0 > div:nth-child(1) > div').textContent.trim();
+                const location = findLocation(locationContent);
+                if (name !== 'Public Records') res.push({name, age, location})
             });
             return res;
         });
