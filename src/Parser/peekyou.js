@@ -20,7 +20,7 @@ let state = process.argv[5];
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: false,
+            headless: true,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -66,27 +66,25 @@ let state = process.argv[5];
             username: config.proxy[proxyNumber].user,
             password: config.proxy[proxyNumber].pass
         });
-
-        await page.goto('https://www.peekyou.com/usa/florida/john_smith')
-        await page.waitForTimeout(2000)
+        console.log(state, firstname, lastname);
+        await page.goto(`https://www.peekyou.com/usa/${state}/${firstname}_${lastname}`)
         await page.waitForSelector('div#resultsContainerProfiles')
-        await page.waitForTimeout(2000)
 
         const results = await page.evaluate(() => {
-            let titleNodeList = Array.from(document.querySelectorAll('div.resultsContainerProfiles div.teaser-card'));
+            let titleNodeList = Array.from(document.querySelectorAll('div.profileRow'));
             let res = [];
             titleNodeList.map(td => {
-                let linkd = td.querySelector('a.card-title').getAttribute('href');
+                const linkd = td.querySelector('div > h2 > a').getAttribute('href');
+                const name = td.querySelector('div > h2 > a > span').textContent;
+                const location = td.querySelector('div > p.locations') ? td.querySelector('div > p.locations > span').textContent: 'NOT_FOUND';
                 res.push({
-                    name: td.querySelector('a.card-title').textContent,
+                    name,
+                    location,
                     link: 'https://www.peekyou.com' + linkd,
-                    location: td.querySelector('p.res-in span.many-links-item').textContent,
-                    age: td.querySelector('div.age').textContent,
                 });
             });
             return res;
         });
-
         console.log(JSON.stringify({message: results, error: null}));
     } catch (e) {
         console.log(JSON.stringify({message: null, error: e.message}));
