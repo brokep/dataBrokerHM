@@ -20,7 +20,7 @@ let state = process.argv[5];
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: false,
+            headless: true,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -35,7 +35,7 @@ let state = process.argv[5];
 
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
-        await page.setDefaultTimeout(15000);
+        await page.setDefaultTimeout(30000);
         await page.setRequestInterception(true);
 
         await page.setViewport({
@@ -69,39 +69,49 @@ let state = process.argv[5];
         });
 
         await page.goto('https://voterrecords.com/voters/'+city+'-us/'+firstname+'+'+lastname+'/1');
-        // await page.waitForSelector('#searchForm')
-        // await page.type('#searchtxt', firstname+' '+lastname);
-        // await page.keyboard.press('Enter');
-        // await page.click('#search');
         await page.waitForSelector('#page-content-wrapper')
 
         let result = await page.evaluate(() => {
-            let titleNodeList = document.querySelectorAll('table.table.table-striped tbody tr');
             let res = [];
-            console.log('TEST');
-            //because first element 0 is not valid
-            for (let i = 1; i < titleNodeList.length - 1; i++) {
-                if (i > 10) {
-                    break;
-                }
 
-                console.log('TEST');
-                console.log('td:nth-child(1) > span > span.lead > a > span');
-                res[i-1] = {
-                    name: titleNodeList[i].querySelector('td:nth-child(1) > span > span.lead > a > span').textContent,
-                    // location: titleNodeList[i].querySelector('tr td:nth-child(2) p').textContent,
-                    link: titleNodeList[i].getAttribute('data-href')
-                    // location: document.querySelector('table.table.table-striped tbody tr:nth-child('+(i+1)+') td:nth-child(2) span').textContent,
-                    // gender: document.querySelector('table.table.table-striped tbody tr:nth-child('+(i+1)+') td:nth-child(1) span.hidden-xs span[itemprop="gender"]').textContent
-                };
+            const voterList = Array.from(document.querySelectorAll('table > tbody > tr'));
+
+            for (let i = 1; i < voterList.length; i++) {
+                const tr = voterList[i];
+                const r = [];
+                const tds = Array.from(tr.querySelectorAll('td'));
+                const splitedPersonalDetails = (tds[0].textContent).split('\n');
+                const freshPersonalDetails = [];
+                for (let i = 0; i < splitedPersonalDetails.length; i ++) {
+                    if (splitedPersonalDetails[i]) {
+                        freshPersonalDetails.push(splitedPersonalDetails[i]);
+                    }
+                }
+                const name = freshPersonalDetails[0];
+                const age = freshPersonalDetails[1].replace('Age:', ' ').trim();
+                const splitedResidentialDetails = (tds[1].textContent).split('\n');
+                let location;
+                for (let i = 0; i < splitedResidentialDetails.length; i++) {
+                    if (splitedResidentialDetails[i] === 'Residential Address:') {
+                        location = splitedResidentialDetails[i + 1];
+                        break;
+                    }
+                }
+                const linkd = tr.getAttribute('data-href')
+                res.push({
+                    name,
+                    age,
+                    location,
+                    link: 'https://voterrecords.com' + linkd,
+                });
             }
             return res;
         });
-
+        console.log(result);
         console.log(JSON.stringify({message: result, error: null}));
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
     } finally {
-        // process.exit(0);
+        process.exit(0);
     }
 })();
