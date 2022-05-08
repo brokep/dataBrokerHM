@@ -20,7 +20,7 @@ let state = process.argv[5];
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: true,
+            headless: false,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -35,7 +35,7 @@ let state = process.argv[5];
 
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
-        await page.setDefaultTimeout(30000);
+        await page.setDefaultTimeout(120 * 30000);
         await page.setRequestInterception(true);
 
         await page.setViewport({
@@ -69,6 +69,7 @@ let state = process.argv[5];
         });
 
         await page.goto('https://voterrecords.com/voters/'+city+'-us/'+firstname+'+'+lastname+'/1');
+        // await page.waitForSelector('#blocker-selector')
         await page.waitForSelector('#page-content-wrapper')
 
         let result = await page.evaluate(() => {
@@ -80,15 +81,17 @@ let state = process.argv[5];
                 const tr = voterList[i];
                 const r = [];
                 const tds = Array.from(tr.querySelectorAll('td'));
-                const splitedPersonalDetails = (tds[0].textContent).split('\n');
-                const freshPersonalDetails = [];
+                const personalDetails = tds[0].textContent;
+                const splitedPersonalDetails = personalDetails.split('\n');
+                let name;
                 for (let i = 0; i < splitedPersonalDetails.length; i ++) {
                     if (splitedPersonalDetails[i]) {
-                        freshPersonalDetails.push(splitedPersonalDetails[i]);
-                    }
+                        name = splitedPersonalDetails[i].trim();
+                        break;
+                    }  
                 }
-                const name = freshPersonalDetails[0];
-                const age = freshPersonalDetails[1].replace('Age:', ' ').trim();
+                const indexOfAge = personalDetails.indexOf('Age')
+                const age = (personalDetails.slice(indexOfAge, indexOfAge + 7)).replace('Age:', ' ').trim();
                 const splitedResidentialDetails = (tds[1].textContent).split('\n');
                 let location;
                 for (let i = 0; i < splitedResidentialDetails.length; i++) {
