@@ -122,8 +122,10 @@ class RunParsers extends Command implements LoggerAwareInterface
 
             if ($process->isSuccessful()) {
                 $out = json_decode($process->getOutput(), true);
+                $message = $out['message'] ?? null;
+                $error = $out['error'] ?? null;
 
-                if ($out['error'] !== null) {
+                if ($error !== null) {
                     $this->logger->error(
                         sprintf("Error inside parser %s. Trying again. Try count: %d" , $parser['name'], $tryCount),
                         ['error' => $out['error']]
@@ -142,8 +144,7 @@ class RunParsers extends Command implements LoggerAwareInterface
                     continue;
                 }
 
-                if (isset($out['message'])) {
-
+                if ($message) {
                     foreach ($out['message'] as $item) {
                         $result = SearchResult::fromParser($parser['name'], $item, $res);
                         $this->searchResultRepository->save($result);

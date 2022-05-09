@@ -89,11 +89,11 @@ class Parsers
             'path' => 'src/Parser/spokeo.js',
             'path_to_deleter' => '',
         ],
-        self::TRUEPEOPLE_SEARCH => [
-            'name' => 'truePeopleSearch.com',
-            'path' => 'src/Parser/truepeoplesearch.js',
-            'path_to_deleter' => '',
-        ],
+//        self::TRUEPEOPLE_SEARCH => [
+//            'name' => 'truePeopleSearch.com',
+//            'path' => 'src/Parser/truepeoplesearch.js',
+//            'path_to_deleter' => '',
+//        ],
         self::USA_TRACE => [
             'name' => 'usaTrace.com',
             'path' => 'src/Parser/usatrace.js',
