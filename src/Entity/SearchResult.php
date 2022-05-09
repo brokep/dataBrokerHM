@@ -43,60 +43,48 @@ class SearchResult
      */
     private SearchRequest $searchRequest;
 
-    /**
-     * @return string
-     */
-    public function getParserName(): string
+    public function getParserName(): ?string
     {
         return $this->parserName;
     }
 
-    public function setParserName(string $parserName): self
+    public function setParserName(?string $parserName): self
     {
         $this->parserName = $parserName;
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getFullname(): string
+    public function getFullname(): ?string
     {
         return $this->fullname;
     }
 
-    public function setFullname(string $name): self
+    public function setFullname(?string $name): self
     {
         $this->fullname = $name;
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getAddress(): string
+    public function getAddress(): ?string
     {
         return $this->address;
     }
 
-    public function setAddress(string $address): self
+    public function setAddress(?string $address): self
     {
         $this->address = $address;
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getAge(): string
+    public function getAge(): ?string
     {
         return $this->age;
     }
 
-    public function setAge(string $age): self
+    public function setAge(?string $age): self
     {
         $this->age = $age;
 
@@ -118,15 +106,12 @@ class SearchResult
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getLink(): string
+    public function getLink(): ?string
     {
         return $this->link;
     }
 
-    public function setLink(string $link): self
+    public function setLink(?string $link): self
     {
         $this->link = $link;
 
