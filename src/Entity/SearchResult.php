@@ -15,27 +15,27 @@ class SearchResult
     /**
      * @ORM\Column(type="string", nullable=true)
      */
-    private string $parserName;
+    private string|null $parserName;
 
     /**
      * @ORM\Column(type="string", nullable=true)
      */
-    private string $fullname;
+    private string|null $fullname;
 
     /**
      * @ORM\Column(type="string", nullable=true)
      */
-    private string $address;
+    private string|null $address;
 
     /**
      * @ORM\Column(type="string", nullable=true)
      */
-    private string $link;
+    private string|null $link;
 
     /**
      * @ORM\Column(type="string", nullable=true)
      */
-    private string $age;
+    private string|null $age;
 
     /**
      * @ORM\ManyToOne(targetEntity="SearchRequest", inversedBy="results")
