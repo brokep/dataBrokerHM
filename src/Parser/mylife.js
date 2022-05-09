@@ -22,7 +22,7 @@ const link = 'https://www.mylife.com';
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: true,
+            headless: false,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -93,10 +93,8 @@ const link = 'https://www.mylife.com';
                 input = input.split(',');
 
                 let name = input[0] || ' ';
-                name = name.trim().split(' ')
                 res[i] = {
-                    firstname: name[0] || '',
-                    lastname: (name[1] || '') + ' ' + (name[2] || ''),
+                    name: name,
                     age: input[1],
                     location: titleNodeList[i].querySelector(
                         '.ais-InfiniteHits-item > .hit-container > .hit-container-left > .hit-profile > .hit-profile-name > p'

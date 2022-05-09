@@ -90,7 +90,6 @@ let state = process.argv[5];
             });
             return res;
         });
-        console.log(results);
         console.log(JSON.stringify({message: results, error: null}));
     } catch (e) {
         console.log(JSON.stringify({message: null, error: e.message}));

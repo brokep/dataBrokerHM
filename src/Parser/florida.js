@@ -61,8 +61,7 @@ const link = 'https://www.floridaresidentsdirectory.com';
                 }
                 let name = titleNodeList[i].querySelector('div a h3').innerText;
                 res[i] = {
-                    firstname: name,
-                    lastname: name,
+                    name: name,
                     age: titleNodeList[i].querySelector('div div div p:nth-child(1)').innerText.replace(/\D/g, ""),
                     address: titleNodeList[i].querySelector('div div div p:nth-child(2) span').innerText,
                     link: titleNodeList[i].querySelector('div a').getAttribute('href'),

@@ -66,7 +66,6 @@ let state = process.argv[5];
             username: config.proxy[proxyNumber].user,
             password: config.proxy[proxyNumber].pass
         });
-        console.log(state, firstname, lastname);
         await page.goto(`https://www.peekyou.com/usa/${state}/${firstname}_${lastname}`)
         await page.waitForSelector('div#resultsContainerProfiles')
 

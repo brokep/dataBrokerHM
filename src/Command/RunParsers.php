@@ -124,35 +124,29 @@ class RunParsers extends Command implements LoggerAwareInterface
                 $out = json_decode($process->getOutput(), true);
 
                 if ($out['error'] !== null) {
-                    $this->logger->error("Error inside parser. Trying again. Try count: $tryCount", [
-                        'name' => $parser['name'],
-                        'error' => $out['error'],
-                    ]);
+                    $this->logger->error(
+                        sprintf("Error inside parser %s. Trying again. Try count: %d" , $parser['name'], $tryCount),
+                        ['error' => $out['error']]
+                    );
 
                     if ($tryCount > 3) {
                         $this->logger->info('Try count exceed. Name: '. $parser['name']);
                         unset($process);
-                        break;
+                        return;
                     }
 
                     $tryCount++;
                     $process = $process->restart();
                     continue;
                 }
-                if (isset($out['message']) && $out['error'] === null) {
+
+                if (isset($out['message'])) {
+
                     foreach ($out['message'] as $item) {
-                        $result = new SearchResult();
-                        $result
-                            ->setFirstname($item['firstname'] ?? '')
-                            ->setLastname($item['lastname'] ?? '')
-                            ->setAge($item['age'] ?? '')
-                            ->setAddress($item['location'] ?? '')
-                            ->setLink($item['link'] ?? '')
-                            ->setParserName($parser['name'])
-                            ->setSearchRequest($res)
-                            ->setCreatedAt(new DateTime());
+                        $result = SearchResult::fromParser($parser['name'], $item, $res);
                         $this->searchResultRepository->save($result);
                     }
+
                     $this->logger->info('Successful response from '. $parser['name']);
                     unset($process);
                     return;

@@ -90,8 +90,7 @@ let state = process.argv[5];
                 }
 
                 res.push({
-                    firstname: name[0] || '',
-                    lastname: name[1] || '',
+                    name: name,
                     link: 'https://www.fastpeoplesearch.com/' + link,
                     location: location.trim(),
                     age: age

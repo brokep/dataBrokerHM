@@ -88,10 +88,10 @@ let state = process.argv[5];
                     if (splitedPersonalDetails[i]) {
                         name = splitedPersonalDetails[i].trim();
                         break;
-                    }  
+                    }
                 }
-                const indexOfAge = personalDetails.indexOf('Age')
-                const age = (personalDetails.slice(indexOfAge, indexOfAge + 7)).replace('Age:', ' ').trim();
+                // const indexOfAge = personalDetails.indexOf('Age')
+                // const age = (personalDetails.slice(indexOfAge, indexOfAge + 7)).replace('Age:', ' ').trim();
                 const splitedResidentialDetails = (tds[1].textContent).split('\n');
                 let location;
                 for (let i = 0; i < splitedResidentialDetails.length; i++) {
@@ -103,14 +103,12 @@ let state = process.argv[5];
                 const linkd = tr.getAttribute('data-href')
                 res.push({
                     name,
-                    age,
                     location,
                     link: 'https://voterrecords.com' + linkd,
                 });
             }
             return res;
         });
-        console.log(result);
         console.log(JSON.stringify({message: result, error: null}));
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));

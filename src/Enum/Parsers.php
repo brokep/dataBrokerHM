@@ -11,10 +11,8 @@ class Parsers
     public const FAST_PEOPLE = 'fast_people';
     public const FLORIDA = 'florida';
     public const MY_LIFE = 'mylife';
-    public const NUWBER = 'nuwber';
     public const PEEKYOU = 'peekyou';
     public const PEOPLE_FRIENDS = 'people_friends';
-    public const RADARIS = 'radaris';
     public const SPOKEO = 'spokeo';
     public const TRUEPEOPLE_SEARCH = 'true_people_search';
     public const USA_TRACE = 'usa_trace';
@@ -41,26 +39,26 @@ class Parsers
     ];
 
     public const PARSERS = [
-//        self::SITE_411 => [
-//            'name' => '411.com',
-//            'path' => 'src/Parser/florida.js',
-//            'path_to_deleter' => '',
-//        ],
-//        self::ABCHECK => [
-//            'name' => 'abcheck.com',
-//            'path' => 'src/Parser/florida.js',
-//            'path_to_deleter' => '',
-//        ],
+        self::SITE_411 => [
+            'name' => '411.com',
+            'path' => 'src/Parser/411.js',
+            'path_to_deleter' => '',
+        ],
+        self::ABCHECK => [
+            'name' => 'abcheck.com',
+            'path' => 'src/Parser/abcheck.js',
+            'path_to_deleter' => '',
+        ],
         self::CLUSTRMAPS => [
             'name' => 'clustrmaps.com',
             'path' => 'src/Parser/clustrmaps.js',
             'path_to_deleter' => '',
         ],
-//        self::CYBER_B_C => [
-//            'name' => 'cyberBackgroundChecks.com',
-//            'path' => 'src/Parser/cyberbackgroundchecks.js',
-//            'path_to_deleter' => '',
-//        ],
+        self::CYBER_B_C => [
+            'name' => 'cyberBackgroundChecks.com',
+            'path' => 'src/Parser/cyberbackgroundchecks.js',
+            'path_to_deleter' => '',
+        ],
         self::FAST_PEOPLE => [
             'name' => 'fastPeopleSearch.com',
             'path' => 'src/Parser/fastpeople.js',
@@ -73,57 +71,47 @@ class Parsers
         ],
         self::MY_LIFE => [
             'name' => 'mylife.com',
-            'path' => 'src/Parser/nuwber.js',
+            'path' => 'src/Parser/mylife.js',
             'path_to_deleter' => '',
         ],
-//        self::NUWBER => [
-//            'name' => 'nuwber.com',
-//            'path' => 'src/Parser/florida.js',
-//            'path_to_deleter' => '',
-//        ],
-//        self::PEEKYOU => [
-//            'name' => 'peekyou.com',
-//            'path' => 'src/Parser/florida.js',
-//            'path_to_deleter' => '',
-//        ],
+        self::PEEKYOU => [
+            'name' => 'peekyou.com',
+            'path' => 'src/Parser/peekyou.js',
+            'path_to_deleter' => '',
+        ],
         self::PEOPLE_FRIENDS => [
             'name' => 'peopleFriends.com',
-            'path' => 'src/Parser/florida.js',
+            'path' => 'src/Parser/peoplefinders.js',
             'path_to_deleter' => '',
         ],
-//        self::RADARIS => [
-//            'name' => 'radaris.com',
-//            'path' => 'src/Parser/florida.js',
-//            'path_to_deleter' => '',
-//        ],
         self::SPOKEO => [
             'name' => 'spokeo.com',
-            'path' => 'src/Parser/florida.js',
+            'path' => 'src/Parser/spokeo.js',
             'path_to_deleter' => '',
         ],
-//        self::TRUEPEOPLE_SEARCH => [
-//            'name' => 'truePeopleSearch.com',
-//            'path' => 'src/Parser/florida.js',
-//            'path_to_deleter' => '',
-//        ],
-//        self::USA_TRACE => [
-//            'name' => 'usaTrace.com',
-//            'path' => 'src/Parser/florida.js',
-//            'path_to_deleter' => '',
-//        ],
-//        self::US_SEARCH => [
-//            'name' => 'usSearch.com',
-//            'path' => 'src/Parser/florida.js',
-//            'path_to_deleter' => '',
-//        ],
-//        self::VOTER_RECORDS => [
-//            'name' => 'voterRecords.com',
-//            'path' => 'src/Parser/florida.js',
-//            'path_to_deleter' => '',
-//        ],
+        self::TRUEPEOPLE_SEARCH => [
+            'name' => 'truePeopleSearch.com',
+            'path' => 'src/Parser/truepeoplesearch.js',
+            'path_to_deleter' => '',
+        ],
+        self::USA_TRACE => [
+            'name' => 'usaTrace.com',
+            'path' => 'src/Parser/usatrace.js',
+            'path_to_deleter' => '',
+        ],
+        self::US_SEARCH => [
+            'name' => 'usSearch.com',
+            'path' => 'src/Parser/ussearch.js',
+            'path_to_deleter' => '',
+        ],
+        self::VOTER_RECORDS => [
+            'name' => 'voterRecords.com',
+            'path' => 'src/Parser/voterrecords.js',
+            'path_to_deleter' => '',
+        ],
         self::WHITE_PAGES => [
             'name' => 'whitePages',
-            'path' => 'src/Parser/florida.js',
+            'path' => 'src/Parser/whitepages.js',
             'path_to_deleter' => '',
         ]
     ];

@@ -73,7 +73,6 @@ const link = 'https://www.spokeo.com';
         await page.goto(link)
         await page.waitForTimeout(6000);
         await page.evaluate(() => window.stop());
-        await page.waitForSelector('#homepage_hero_form');
 
         await page.type('#homepage_hero_form  input[name="q"]', firstname+' '+lastname);
         await page.keyboard.press('Enter');
@@ -87,10 +86,9 @@ const link = 'https://www.spokeo.com';
                 if (i > 10) {
                     break;
                 }
-                let name = titleNodeList[i].querySelector('.title').textContent.split(', ')[0].split(' ');
+                let name = titleNodeList[i].querySelector('.title').textContent.split(', ')[0];
                 res[i] = {
-                    firstname: name[0] || '',
-                    lastname: (name[1] || '') + ' ' + (name[2] || ''),
+                    name: name,
                     link: link + titleNodeList[i].getAttribute('href'),
                     location: titleNodeList[i].querySelector('div > div > span').textContent,
                     age: titleNodeList[i].querySelector('.title').textContent.split(', ')[1],

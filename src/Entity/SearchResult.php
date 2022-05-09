@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -19,12 +20,7 @@ class SearchResult
     /**
      * @ORM\Column(type="string", nullable=true)
      */
-    private string $firstname;
-
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     */
-    private string $lastname;
+    private string $fullname;
 
     /**
      * @ORM\Column(type="string", nullable=true)
@@ -65,29 +61,14 @@ class SearchResult
     /**
      * @return string
      */
-    public function getFirstname(): string
+    public function getFullname(): string
     {
-        return $this->firstname;
+        return $this->fullname;
     }
 
-    public function setFirstname(string $firstname): self
+    public function setFullname(string $name): self
     {
-        $this->firstname = $firstname;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLastname(): string
-    {
-        return $this->lastname;
-    }
-
-    public function setLastname(string $lastname): self
-    {
-        $this->lastname = $lastname;
+        $this->fullname = $name;
 
         return $this;
     }
@@ -150,5 +131,21 @@ class SearchResult
         $this->link = $link;
 
         return $this;
+    }
+
+    public static function fromParser(string $parserName, array $data, SearchRequest $result): self
+    {
+        $s = new self();
+
+        $s
+            ->setFullname($data['name'] ?? '')
+            ->setAge($data['age'] ?? '')
+            ->setAddress($data['location'] ?? '')
+            ->setLink($data['link'] ?? '')
+            ->setParserName($parserName)
+            ->setSearchRequest($result)
+            ->setCreatedAt(new DateTime());
+
+        return $s;
     }
 }

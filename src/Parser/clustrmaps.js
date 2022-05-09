@@ -82,9 +82,7 @@ const link = 'https://clustrmaps.com';
                 if (i > 10) {
                     break;
                 }
-                let name = titleNodeList[i].querySelector('.mb-5 > .d-flex > .h4 > a > span').textContent.split(' ');
-                let first = name[0] || '';
-                let last = (name[1] || '') + ' ' + (name[2] || '');
+                let name = titleNodeList[i].querySelector('.mb-5 > .d-flex > .h4 > a > span').textContent;
                 let age = 0;
                 let agenode = titleNodeList[i].querySelector('span.age');
                 if(agenode) {
@@ -92,8 +90,7 @@ const link = 'https://clustrmaps.com';
                 }
 
                 res[i] = {
-                    firstname: first,
-                    lastname: last,
+                    name: name,
                     link: link + titleNodeList[i].querySelector('.mb-5 > .d-flex > .h4 > a').getAttribute('href'),
                     location: titleNodeList[i].querySelector('.mb-5 > .mb-1 > a > span').textContent,
                     age: age
