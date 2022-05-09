@@ -144,8 +144,8 @@ class RunParsers extends Command implements LoggerAwareInterface
                     continue;
                 }
 
-                if (!empty($message) && $error === null) {
-                    foreach ($out['message'] as $item) {
+                if (is_array($message)) {
+                    foreach ($message as $item) {
                         $result = SearchResult::fromParser($parser['name'], $item, $res);
                         $this->searchResultRepository->save($result);
                     }
@@ -154,6 +154,8 @@ class RunParsers extends Command implements LoggerAwareInterface
                     unset($process);
                     return;
                 }
+
+                return;
 
             } else {
                 $out = $process->getErrorOutput();
