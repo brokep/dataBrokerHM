@@ -8,9 +8,9 @@ const funcs = require('./functions');
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
 let browser, page;
-// let proxyNumber = funcs.randomInt(0, 1);
 // 0 - cheaper proxy, 1 - expensive proxy
-let proxyNumber = 0;
+// let proxyNumber = funcs.randomInt(0, 1);
+let proxyNumber = 1;
 let firstname = process.argv[2];
 let lastname = process.argv[3];
 let city = process.argv[4];
@@ -75,7 +75,7 @@ let state = process.argv[5];
         // await page.evaluate(() => window.stop());
 
         await page.type('#id-d-n', firstname + ' ' + lastname);
-        await page.type('#id-d-loc-name', state);
+        // await page.type('#id-d-loc-name', city);
         await page.click('#btnSubmit-d-n');
 
         // await page.waitForSelector('#blocker-selector');
