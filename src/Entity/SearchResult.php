@@ -33,7 +33,7 @@ class SearchResult
     private string $link;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="string", nullable=true)
      */
     private string $age;
 
@@ -142,6 +142,19 @@ class SearchResult
             ->setAge($data['age'] ?? '')
             ->setAddress($data['location'] ?? '')
             ->setLink($data['link'] ?? '')
+            ->setParserName($parserName)
+            ->setSearchRequest($result)
+            ->setCreatedAt(new DateTime());
+
+        return $s;
+    }
+
+    public static function forError(string $parserName, SearchRequest $result): self
+    {
+        $s = new self();
+
+        $s
+            ->setFullname('No data or error. Please check manually')
             ->setParserName($parserName)
             ->setSearchRequest($result)
             ->setCreatedAt(new DateTime());

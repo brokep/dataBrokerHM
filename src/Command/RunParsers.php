@@ -131,7 +131,9 @@ class RunParsers extends Command implements LoggerAwareInterface
 
                     if ($tryCount > 3) {
                         $this->logger->info('Try count exceed. Name: '. $parser['name']);
-                        $process->stop(1);
+                        $result = SearchResult::forError($parser['name'], $res);
+                        $this->searchResultRepository->save($result);
+                        unset($process);
                         return;
                     }
 
@@ -148,7 +150,7 @@ class RunParsers extends Command implements LoggerAwareInterface
                     }
 
                     $this->logger->info('Successful response from '. $parser['name']);
-                    $process->stop(1);
+                    unset($process);
                     return;
                 }
 
@@ -158,7 +160,9 @@ class RunParsers extends Command implements LoggerAwareInterface
 
                 if ($tryCount > 3) {
                     $this->logger->info('Try count exceed. Name: '. $parser['name']);
-                    $process->stop(1);
+                    $result = SearchResult::forError($parser['name'], $res);
+                    $this->searchResultRepository->save($result);
+                    unset($process);
                     break;
                 }
 
