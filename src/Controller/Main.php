@@ -111,8 +111,7 @@ class Main extends AbstractController
         /** @var SearchResult $result */
         foreach ($results as $result) {
             $temp[$result->getParserName()][] = [
-                'fname' => $result->getFirstname(),
-                'lname' => $result->getLastname(),
+                'name' => $result->getFullname(),
                 'address' => $result->getAddress(),
                 'age' => $result->getAge(),
                 'link' => $result->getLink(),

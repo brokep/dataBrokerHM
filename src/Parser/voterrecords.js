@@ -20,7 +20,7 @@ let state = process.argv[5];
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: false,
+            headless: true,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,

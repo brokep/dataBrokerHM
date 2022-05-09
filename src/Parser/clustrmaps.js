@@ -83,7 +83,7 @@ const link = 'https://clustrmaps.com';
                     break;
                 }
                 let name = titleNodeList[i].querySelector('.mb-5 > .d-flex > .h4 > a > span').textContent;
-                let age = 0;
+                let age = ' ';
                 let agenode = titleNodeList[i].querySelector('span.age');
                 if(agenode) {
                     age = agenode.textContent.replace(', age', '').trim();

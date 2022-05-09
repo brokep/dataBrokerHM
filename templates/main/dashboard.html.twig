@@ -241,8 +241,7 @@
                       <table class="table">
                         <thead>
                         <tr>
-                          <th>Firstname</th>
-                          <th>Lastname</th>
+                          <th>Name</th>
                           <th>Address</th>
                           <th>Age</th>
                           <th>Actions</th>
@@ -251,13 +250,14 @@
                         <tbody class="table-border-bottom-0">
                         {% for item in items %}
                           <tr>
-                            <td>{{ item.fname|default('-') }}</td>
-                            <td>{{ item.lname|default('-') }}</td>
+                            <td>{{ item.name|default('-') }}</td>
                             <td>{{ item.address|default('-') }}</td>
                             <td>{{ item.age|default('-') }}</td>
                             <td>
-                              <a href="{{ item.link|default('-') }}" target="_blank"><span class="badge bg-label-success me-1">Show</span></a>
-                              <a href="#" class="delete-btn"><span class="badge bg-label-danger me-1">Delete</span></a>
+                              {% if item.link == '' %}
+                                <a href="{{ item.link }}" target="_blank"><span class="badge bg-label-success me-1">Show</span></a>
+                              {% endif %}
+{#                              <a href="#" class="delete-btn"><span class="badge bg-label-danger me-1">Delete</span></a>#}
                             </td>
                           </tr>
                         {% endfor %}

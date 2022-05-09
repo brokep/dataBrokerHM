@@ -86,13 +86,15 @@ const webpageURL = 'https://www.advancedbackgroundchecks.com';
             let titleNodeList = Array.from(document.querySelectorAll('#peoplelist2 > div.card'));
             let res = [];
             titleNodeList.map((td, index) => {
-                const nameContent = (td.querySelector('div > h4').textContent.trim())
-                const name = nameContent.slice(0, nameContent.indexOf('Age'));
-                const age = td.querySelector('div > h4 > span').textContent.trim();
-                const location = td.querySelector('div > p:nth-child(2)').textContent.trim();
-                const linkContent = (td.querySelector('div > a.link-to-details')).getAttribute('href');
-                const link = linkContent[0] === '/' ? 'https://www.advancedbackgroundchecks.com' + linkContent : linkContent;
-                res.push({name, age, location, link});
+                if (index >= 3) { // skip sponsored
+                    const nameContent = (td.querySelector('div > h4').textContent.trim())
+                    const name = nameContent.slice(0, nameContent.indexOf('Age'));
+                    const age = td.querySelector('div > h4 > span').textContent.trim();
+                    const location = td.querySelector('div > p:nth-child(2)').textContent.trim();
+                    const linkContent = (td.querySelector('div > a.link-to-details')).getAttribute('href');
+                    const link = linkContent[0] === '/' ? 'https://www.advancedbackgroundchecks.com' + linkContent : linkContent;
+                    res.push({name, age, location, link});
+                }
             });
             return res;
         });

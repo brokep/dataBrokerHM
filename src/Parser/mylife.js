@@ -22,7 +22,7 @@ const link = 'https://www.mylife.com';
     try {
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: false,
+            headless: true,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,

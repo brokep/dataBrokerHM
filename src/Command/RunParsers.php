@@ -29,7 +29,7 @@ class RunParsers extends Command implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    private const TIMEOUT_8_MIN = 500;
+    private const TIMEOUT_3_MIN = 180;
     private const OPT = 'env-name';
 
     private Generator $parsers;
@@ -131,7 +131,7 @@ class RunParsers extends Command implements LoggerAwareInterface
 
                     if ($tryCount > 3) {
                         $this->logger->info('Try count exceed. Name: '. $parser['name']);
-                        unset($process);
+                        $process->stop(1);
                         return;
                     }
 
@@ -148,7 +148,7 @@ class RunParsers extends Command implements LoggerAwareInterface
                     }
 
                     $this->logger->info('Successful response from '. $parser['name']);
-                    unset($process);
+                    $process->stop(1);
                     return;
                 }
 
@@ -158,7 +158,7 @@ class RunParsers extends Command implements LoggerAwareInterface
 
                 if ($tryCount > 3) {
                     $this->logger->info('Try count exceed. Name: '. $parser['name']);
-                    unset($process);
+                    $process->stop(1);
                     break;
                 }
 
@@ -180,8 +180,7 @@ class RunParsers extends Command implements LoggerAwareInterface
             $request->getCity(),
             $request->getState() ?? ''
         ]);
-        $process->setTimeout(self::TIMEOUT_8_MIN);
-
+        $process->setTimeout(self::TIMEOUT_3_MIN);
         $process->start();
         $this->logger->info('Start searching: ' . $parser['name']);
 
