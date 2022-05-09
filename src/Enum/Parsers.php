@@ -23,17 +23,17 @@ class Parsers
     public const TEST_PARSER = [
         '1' => [
             'name' => 'FloridaResidentsDirectory1.com',
-            'path' => 'src/Parser/florida.js',
+            'path' => 'src/Parser/floridatest.js',
             'path_to_deleter' => '',
         ],
         '2' => [
             'name' => 'FloridaResidentsDirectory2.com',
-            'path' => 'src/Parser/florida.js',
+            'path' => 'src/Parser/floridatest.js',
             'path_to_deleter' => '',
         ],
         '3' => [
             'name' => 'FloridaResidentsDirectory3.com',
-            'path' => 'src/Parser/florida.js',
+            'path' => 'src/Parser/floridatest.js',
             'path_to_deleter' => '',
         ],
     ];
