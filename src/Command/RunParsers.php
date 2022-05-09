@@ -144,7 +144,7 @@ class RunParsers extends Command implements LoggerAwareInterface
                     continue;
                 }
 
-                if ($message) {
+                if (!empty($message) && $error === null) {
                     foreach ($out['message'] as $item) {
                         $result = SearchResult::fromParser($parser['name'], $item, $res);
                         $this->searchResultRepository->save($result);
@@ -187,7 +187,7 @@ class RunParsers extends Command implements LoggerAwareInterface
         ]);
         $process->setTimeout(self::TIMEOUT_3_MIN);
         $process->start();
-        $this->logger->info('Start searching: ' . $parser['name']);
+        $this->logger->info('Start searching: ' . $parser['name'], ['command' => $process->getCommandLine()]);
 
         return $process;
     }
