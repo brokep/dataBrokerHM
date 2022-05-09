@@ -254,7 +254,7 @@
                             <td>{{ item.address|default('-') }}</td>
                             <td>{{ item.age|default('-') }}</td>
                             <td>
-                              {% if item.link == '' %}
+                              {% if item.link != '' and item.link != null %}
                                 <a href="{{ item.link }}" target="_blank"><span class="badge bg-label-success me-1">Show</span></a>
                               {% endif %}
 {#                              <a href="#" class="delete-btn"><span class="badge bg-label-danger me-1">Delete</span></a>#}
