@@ -1,6 +1,11 @@
 {
   "proxy": [
     {
+      "host": "46.232.13.161:8000",
+      "user": "zKFsp4",
+      "pass": "PfAGhP"
+    },
+    {
       "host": "46.232.10.41:8000",
       "user": "KEPTxK",
       "pass": "9Wu73E"
