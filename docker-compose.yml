@@ -24,7 +24,7 @@ services:
 
     mysql:
         container_name: mysql
-        image: mysql:5.7
+        image: mysql:docker-compose exec php bash
         restart: always
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASS}
