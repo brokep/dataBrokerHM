@@ -28,12 +28,12 @@ class Parsers
         ],
         '2' => [
             'name' => 'FloridaResidentsDirectory2.com',
-            'path' => 'src/Parser/floridatest.js',
+            'path' => 'src/Parser/floridatest2.js',
             'path_to_deleter' => '',
         ],
         '3' => [
             'name' => 'FloridaResidentsDirectory3.com',
-            'path' => 'src/Parser/floridatest.js',
+            'path' => 'src/Parser/floridatest3.js',
             'path_to_deleter' => '',
         ],
     ];

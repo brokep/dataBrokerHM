@@ -8,7 +8,6 @@ use App\Enum\Parsers;
 use App\Enum\SearchRequestStatus;
 use App\Repository\SearchRequestRepository;
 use App\Repository\SearchResultRepository;
-use DateTime;
 use Generator;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -18,6 +17,8 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 use Throwable;
 
@@ -37,7 +38,8 @@ class RunParsers extends Command implements LoggerAwareInterface
     public function __construct(
         private ContainerBagInterface $params,
         private SearchRequestRepository $searchRequestRepository,
-        private SearchResultRepository $searchResultRepository
+        private SearchResultRepository $searchResultRepository,
+        private ?OutputInterface $output = null,
     ) {
         parent::__construct();
     }
@@ -49,9 +51,11 @@ class RunParsers extends Command implements LoggerAwareInterface
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->output = $output;
+        /** @var SearchRequest[] $res */
         $res = $this->searchRequestRepository->findBy(['status' => SearchRequestStatus::IN_PROGRESS]);
         if (count($res) > 0) {
-            $this->logger->info('There is active job running');
+            $this->log('There is active job running');
             return self::SUCCESS;
         }
 
@@ -66,29 +70,41 @@ class RunParsers extends Command implements LoggerAwareInterface
             $res->setStatus(SearchRequestStatus::IN_PROGRESS);
             $this->searchRequestRepository->save($res);
             $this->parsers = $this->getParsersIterator($input->getArgument(self::OPT));
-            $this->logger->info('Start process job: ' . $res->getId());
+            $this->log('Start process job. requestId: ' . $res->getId());
 
-            $this->process($res);
+            $this->process($res, $output);
+        } catch (ProcessFailedException $e) {
+            $this->log('Process can not be executed: ' . $e->getMessage());
+
+            $res->setStatus(SearchRequestStatus::ERROR);
+            $this->searchRequestRepository->save($res);
+            return self::FAILURE;
+        } catch (ProcessTimedOutException) {
+            $this->log(sprintf('Process reached timeout (%d). RequestId %d', self::TIMEOUT_3_MIN, $res->getId()));
+
+            $res->setStatus(SearchRequestStatus::ERROR);
+            $this->searchRequestRepository->save($res);
+            return self::FAILURE;
         } catch (Throwable $e) {
-            $this->logger->error(
-                "Something terrible",
-                ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString(), 'requestId' => $res->getId()]
-            );
+            $this->log(sprintf("Something terrible: %s. requestId: %s", $e->getMessage(), $res->getId()));
+
             $res->setStatus(SearchRequestStatus::ERROR);
             $this->searchRequestRepository->save($res);
             return self::FAILURE;
         }
 
-        $this->logger->info('Request finished ' . $res->getId());
+        $this->log('Request finished ' . $res->getId());
+
         return self::SUCCESS;
     }
 
-    private function process(SearchRequest $request)
+    private function process(SearchRequest $request, OutputInterface $output)
     {
         foreach ($this->parsers as $parser) {
             $process = $this->addNewProcess($request, $parser);
 
-            $this->checkRunningProcess($request, $process, $parser);
+
+            $this->checkRunningProcess($request, $process, $output, $parser);
         }
 
         $request->setStatus(SearchRequestStatus::DONE);
@@ -110,69 +126,44 @@ class RunParsers extends Command implements LoggerAwareInterface
         }
     }
 
-    private function checkRunningProcess(SearchRequest $res, Process $process, $parser)
+    private function checkRunningProcess(SearchRequest $res, Process $process, OutputInterface $output, $parser)
     {
-        $tryCount = 1;
-        while (true) {
-            if ($process->isRunning()) {
-                sleep(1);
+        for ($tryCount = 1; $tryCount < 4; $tryCount++) {
+            $out = json_decode($process->getOutput(), true);
+            $this->log('Successful response from scrapper. Output : ' . $process->getOutput());
+            $message = $out['message'] ?? null;
+            $error = $out['error'] ?? null;
 
+            if ($error !== null) {
+                $this->log(sprintf(
+                        "Error inside parser: %s. Error from: %s. Trying again. Try count: %d",
+                        $out['error'],
+                        $parser['name'],
+                        $tryCount)
+                );
+
+                $process = $process->mustRun();
                 continue;
             }
 
-            if ($process->isSuccessful()) {
-                $out = json_decode($process->getOutput(), true);
-                $message = $out['message'] ?? null;
-                $error = $out['error'] ?? null;
-
-                if ($error !== null) {
-                    $this->logger->error(
-                        sprintf("Error inside parser %s. Trying again. Try count: %d" , $parser['name'], $tryCount),
-                        ['error' => $out['error']]
-                    );
-
-                    if ($tryCount > 3) {
-                        $this->logger->info('Try count exceed. Name: '. $parser['name']);
-                        $result = SearchResult::forError($parser['name'], $res);
-                        $this->searchResultRepository->save($result);
-                        unset($process);
-                        return;
-                    }
-
-                    $tryCount++;
-                    $process = $process->restart();
-                    continue;
+            if (is_array($message)) {
+                foreach ($message as $item) {
+                    $result = SearchResult::fromParser($parser['name'], $item, $res);
+                    $this->searchResultRepository->save($result);
                 }
 
-                if (is_array($message)) {
-                    foreach ($message as $item) {
-                        $result = SearchResult::fromParser($parser['name'], $item, $res);
-                        $this->searchResultRepository->save($result);
-                    }
-
-                    $this->logger->info('Successful response from '. $parser['name']);
-                    unset($process);
-                    return;
-                }
+                unset($process);
+                $this->log('Successful response from '. $parser['name']);
 
                 return;
-
-            } else {
-                $out = $process->getErrorOutput();
-                $this->logger->error('Error in process. Try again', ['name' => $parser['name'], 'out' => $out]);
-
-                if ($tryCount > 3) {
-                    $this->logger->info('Try count exceed. Name: '. $parser['name']);
-                    $result = SearchResult::forError($parser['name'], $res);
-                    $this->searchResultRepository->save($result);
-                    unset($process);
-                    break;
-                }
-
-                $tryCount++;
-                $process = $process->restart();
             }
         }
+
+        $this->log('Try count exceed. Parser: '. $parser['name']);
+        $result = SearchResult::forError($parser['name'], $res);
+        $this->searchResultRepository->save($result);
+
+        unset($process);
     }
 
     private function addNewProcess(SearchRequest $request, $parser): Process
@@ -188,9 +179,18 @@ class RunParsers extends Command implements LoggerAwareInterface
             $request->getState() ?? ''
         ]);
         $process->setTimeout(self::TIMEOUT_3_MIN);
-        $process->start();
-        $this->logger->info('Start searching: ' . $parser['name'], ['command' => $process->getCommandLine()]);
+
+        $this->log('Start searching: ' . $parser['name']);
+        $this->log('Command: ' . $process->getCommandLine());
+
+        $process->mustRun();
 
         return $process;
+    }
+
+    private function log(string $message): void
+    {
+        $this->output->writeln($message, OutputInterface::OUTPUT_PLAIN);
+        $this->logger->info($message);
     }
 }
