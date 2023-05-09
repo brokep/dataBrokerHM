@@ -90,6 +90,7 @@ class RunParsers extends Command implements LoggerAwareInterface
     {
         foreach ($this->parsers as $parser) {
             $this->runProcess($request, $parser);
+            shell_exec('pkill chrome');
         }
 
         $request->setStatus(SearchRequestStatus::DONE);
