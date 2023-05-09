@@ -72,19 +72,7 @@ class RunParsers extends Command implements LoggerAwareInterface
             $this->parsers = $this->getParsersIterator($input->getArgument(self::OPT));
             $this->log('Start process job. requestId: ' . $res->getId());
 
-            $this->process($res, $output);
-        } catch (ProcessFailedException $e) {
-            $this->log('Process can not be executed: ' . $e->getMessage());
-
-            $res->setStatus(SearchRequestStatus::ERROR);
-            $this->searchRequestRepository->save($res);
-            return self::FAILURE;
-        } catch (ProcessTimedOutException) {
-            $this->log(sprintf('Process reached timeout (%d). RequestId %d', self::TIMEOUT_3_MIN, $res->getId()));
-
-            $res->setStatus(SearchRequestStatus::ERROR);
-            $this->searchRequestRepository->save($res);
-            return self::FAILURE;
+            $this->process($res);
         } catch (Throwable $e) {
             $this->log(sprintf("Something terrible: %s. requestId: %s", $e->getMessage(), $res->getId()));
 
@@ -98,71 +86,76 @@ class RunParsers extends Command implements LoggerAwareInterface
         return self::SUCCESS;
     }
 
-    private function process(SearchRequest $request, OutputInterface $output)
+    private function process(SearchRequest $request)
     {
         foreach ($this->parsers as $parser) {
-            $process = $this->addNewProcess($request, $parser);
-
-
-            $this->checkRunningProcess($request, $process, $output, $parser);
+            $this->runProcess($request, $parser);
         }
 
         $request->setStatus(SearchRequestStatus::DONE);
         $this->searchRequestRepository->save($request);
     }
 
-    private function getParsersIterator(string $env): Generator
-    {
-        if ($env == 'dev') {
-            $this->logger->info('Get dev parsers');
-            foreach (Parsers::TEST_PARSER as $parser) {
-                yield $parser;
-            }
-        } else {
-            $this->logger->info('Get prod parsers');
-            foreach (Parsers::PARSERS as $parser) {
-                yield $parser;
-            }
-        }
-    }
-
-    private function checkRunningProcess(SearchRequest $res, Process $process, OutputInterface $output, $parser)
+    private function runProcess(SearchRequest $res, $parser)
     {
         for ($tryCount = 1; $tryCount < 4; $tryCount++) {
-            $out = json_decode($process->getOutput(), true);
-            $this->log('Successful response from scrapper. Output : ' . $process->getOutput());
-            $message = $out['message'] ?? null;
-            $error = $out['error'] ?? null;
+            try {
+                $process = $this->addNewProcess($res, $parser);
+                $out = json_decode($process->getOutput(), true);
+                $this->log('Successful response from scrapper. Output : ' . $process->getOutput());
+                $message = $out['message'] ?? null;
+                $error = $out['error'] ?? null;
 
-            if ($error !== null) {
-                $this->log(sprintf(
-                        "Error inside parser: %s. Error from: %s. Trying again. Try count: %d",
-                        $out['error'],
-                        $parser['name'],
-                        $tryCount)
-                );
+                if ($error !== null) {
+                    $this->log(sprintf(
+                            "Error inside parser: %s. Error from: %s. Trying again. Try count: %d",
+                            $out['error'],
+                            $parser['name'],
+                            $tryCount)
+                    );
 
-                $process = $process->mustRun();
-                continue;
-            }
+                    unset($process);
+                    continue;
+                }
 
-            if (is_array($message)) {
-                foreach ($message as $item) {
-                    $result = SearchResult::fromParser($parser['name'], $item, $res);
+                if (is_array($message)) {
+                    foreach ($message as $item) {
+                        $result = SearchResult::fromParser($parser['name'], $item, $res);
+                        $this->searchResultRepository->save($result);
+                    }
+
+                    unset($process);
+                    $this->log('Successful response from '. $parser['name']);
+
+                    return;
+                }
+            } catch (ProcessFailedException $e) {
+                $this->log('Process can not be executed: ' . $e->getMessage());
+
+                if ($tryCount >= 3) {
+                    $result = SearchResult::forError($parser['name'], $res);
                     $this->searchResultRepository->save($result);
+                    unset($process);
+                    return;
                 }
 
                 unset($process);
-                $this->log('Successful response from '. $parser['name']);
+            } catch (ProcessTimedOutException) {
+                $this->log(sprintf('Process reached timeout (%d). RequestId %d', self::TIMEOUT_3_MIN, $res->getId()));
 
-                return;
+                if ($tryCount >= 3) {
+                    $result = SearchResult::forError($parser['name'], $res);
+                    $this->searchResultRepository->save($result);
+                    unset($process);
+                    return;
+                }
+                unset($process);
             }
         }
 
         $this->log('Try count exceed. Parser: '. $parser['name']);
         $result = SearchResult::forError($parser['name'], $res);
         $this->searchResultRepository->save($result);
-
         unset($process);
     }
 
@@ -192,5 +185,20 @@ class RunParsers extends Command implements LoggerAwareInterface
     {
         $this->output->writeln($message, OutputInterface::OUTPUT_PLAIN);
         $this->logger->info($message);
+    }
+
+    private function getParsersIterator(string $env): Generator
+    {
+        if ($env == 'dev') {
+            $this->logger->info('Get dev parsers');
+            foreach (Parsers::TEST_PARSER as $parser) {
+                yield $parser;
+            }
+        } else {
+            $this->logger->info('Get prod parsers');
+            foreach (Parsers::PARSERS as $parser) {
+                yield $parser;
+            }
+        }
     }
 }
