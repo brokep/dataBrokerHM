@@ -9,14 +9,13 @@ let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
 let browser, page;
 // 0 - cheaper proxy, 1 - expensive proxy
-let proxyNumber = funcs.randomInt(0, 1);
-// let proxyNumber = 0;
+let proxyNumber = 0;
 let firstname = process.argv[2];
 let lastname = process.argv[3];
 let city = process.argv[4];
 let state = process.argv[5];
 
-const link = 'https://www.mylife.com';
+const link = `https://www.mylife.com/pub-multisearch.pubview?searchFirstName=${firstname}&searchLastName=${lastname}&searchLocation=${city}%2C+${state}&whyReg=peoplesearch&whySub=Member+Profile+Sub&pageType=ps`;
 
 (async () => {
     try {
@@ -71,40 +70,23 @@ const link = 'https://www.mylife.com';
 
 
         await page.goto(link)
-
-        await page.waitForSelector('#single-search-input');
-        await page.type('#single-search-input', firstname + ' ' + lastname +' '+city + ' ' + state);
-        await page.keyboard.press('Enter');
-        // await page.waitForSelector('ul.ais-InfiniteHits-list')
-        // await page.$eval('ul.ais-InfiniteHits-list', (el) => el.scrollIntoView())
         await page.waitForSelector('.ais-InfiniteHits-item');
 
         let items = await page.evaluate(() => {
-            let titleNodeList = document.querySelectorAll('.ais-InfiniteHits-item');
+            let titleNodeList = Array.from(document.querySelectorAll('.ais-InfiniteHits-item')).slice(0, 10);
             let res = [];
-            let input;
-            for (let i = 0; i < titleNodeList.length; i++) {
-                if (i > 10) {
-                    break;
-                }
-                input = titleNodeList[i].querySelector(
-                    '.ais-InfiniteHits-item > .hit-container > .hit-container-left > .hit-profile > .hit-profile-name > a'
-                ).textContent;
-                input = input.split(',');
 
-                let name = input[0] || ' ';
-                res[i] = {
-                    name: name,
-                    age: input[1],
-                    location: titleNodeList[i].querySelector(
-                        '.ais-InfiniteHits-item > .hit-container > .hit-container-left > .hit-profile > .hit-profile-name > p'
-                    ).textContent,
-                    link: titleNodeList[i].querySelector(
-                        '.ais-InfiniteHits-item > .hit-container > .hit-container-left > .hit-profile > .hit-profile-name > a'
-                    ).getAttribute('href'),};
-            }
+            titleNodeList.forEach((node) => {
+                let [name, age] = node.querySelector('.hit-name')?.textContent?.split(',');
+                name = name?.replace('\n', '')?.trim();
+                age = age?.replace(' ', '');
+                const link = node.querySelector('.hit-name')?.href;
+                const location = node.querySelector('.hit-location')?.textContent?.replace('\n', '').trim();
+                res.push({name, age, link, location});
+            })
             return res;
         });
+        console.log(items);
         console.log(JSON.stringify({message: items, error: null}));
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
