@@ -3,7 +3,6 @@ const path = require('path');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
-const funcs = require('./functions');
 
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
@@ -67,26 +66,26 @@ let state = process.argv[5];
             password: config.proxy[proxyNumber].pass
         });
         await page.goto('https://www.411.com/name/'+firstname+'-'+lastname+'/'+city+'-'+state+'?fs=1&searchedName='+firstname+'%20'+lastname+'&searchedLocation='+city+',%20'+state)
-        await page.waitForSelector('body > div.container > div');
+        await page.waitForSelector('.serp-card');
 
         const results = await page.evaluate(() => {
             let res = [];
-            let allProfileList = Array.from(document.querySelectorAll('body > div.container > div a.serp-card'));
+            let allProfileList = Array.from(document.querySelectorAll('.serp-card'));
             if(!allProfileList.length) {
                 return res;
             }
             let profileList = allProfileList.slice(0, 10);
             profileList.map(profile => {
-                const name = (profile.querySelector('div.name-wrap').textContent.trim().split(/\r?\n/))[0];
-                const location = (profile.querySelector('div.name-wrap > div.person-location')
-                    .textContent.trim())
-                    .replace(/\r?\n|\r/g, " ") // replacing new-line char as whitespace
-                    .replace(/\s+/g, ' '); // removing extra spaces
-                const age = profile.querySelector('div.age-border > span.person-age').textContent.trim();
-                const link = 'https://www.411.com' + profile.getAttribute('href');
-                res.push({
-                    name, location, age, link
-                });
+                const name = (profile.querySelector('h2.text-base')?.textContent.trim());
+                const location = (profile.querySelector('h3.text-ellipsis')
+                    ?.textContent.trim())
+                const link = 'https://www.411.com' + Array.from(profile.querySelectorAll('a'))
+                    .find((elem) => elem.textContent.includes('View Details'))?.href
+                const age = Array.from(profile.querySelectorAll('span'))
+                    .find((elem) => elem.textContent.includes('Age'))
+                    ?.nextElementSibling
+                    ?.textContent
+                res.push({name, location, link, age});
             })
             return res;
         });
