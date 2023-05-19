@@ -94,6 +94,7 @@ let state = process.argv[5];
         console.log(JSON.stringify({message: results, error: null}));
     } catch (e) {
         console.log(JSON.stringify({message: null, error: e.message}));
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
         process.exit(0);
     }

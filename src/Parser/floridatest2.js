@@ -70,6 +70,7 @@ const link = 'https://www.floridaresidentsdirectory.com';
         });
         console.log(JSON.stringify({message: null, error: 'Error inside'}));
     } catch(e){
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
         await browser.close();
         process.exit(0);

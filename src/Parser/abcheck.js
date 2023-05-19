@@ -75,10 +75,7 @@ const webpageURL = 'https://www.advancedbackgroundchecks.com';
         await page.goto(webpageURL)
         await page.waitForSelector('#form-search-name')
         await page.type('#search-name-name', firstname+' '+lastname);
-        // await page.type('#search-name-address', location);
         await page.keyboard.press('Enter');
-
-        // await page.waitForSelector('#blocker-selector');
 
         await page.waitForSelector('#peoplelist2');
 
@@ -98,10 +95,10 @@ const webpageURL = 'https://www.advancedbackgroundchecks.com';
             });
             return res;
         });
-        // console.log(results);
         console.log(JSON.stringify({message: results, error: null}));
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
         process.exit(0);
     }

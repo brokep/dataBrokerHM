@@ -69,7 +69,6 @@ let state = process.argv[5];
         });
 
         await page.goto('https://www.usatrace.com/people-search/'+firstname+'-'+lastname+'/'+city+'-'+state+'/')
-        // await page.waitForSelector('#blocker-selector')
         await page.waitForSelector('#usatrace-result-table')
 
         const results = await page.evaluate(() => {
@@ -104,6 +103,7 @@ let state = process.argv[5];
         console.log(JSON.stringify({message: results, error: null}));
     } catch (e) {
         console.log(JSON.stringify({message: null, error: e.message}));
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
         process.exit(0);
     }

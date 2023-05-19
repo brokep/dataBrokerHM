@@ -96,8 +96,8 @@ const webpageURL = 'https://www.beenverified.com/app/optout/search';
         });
         console.log(JSON.stringify({message: results, error: null}));
     } catch(e){
-        console.error(e);
         console.log(JSON.stringify({message: null, error: e.message}));
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
         process.exit(0);
     }

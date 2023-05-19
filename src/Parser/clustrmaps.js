@@ -72,7 +72,6 @@ const link = 'https://clustrmaps.com';
         await page.goto(link);
         await page.waitForSelector('#main-people-form > div.form-input > input[type=text]');
         await page.type('#main-people-form > div.form-input > input[type=text]', firstname + ' ' + lastname);
-        // await page.click('#main-people-form > div.form-button > button');
         await page.keyboard.press('Enter');
         await page.waitForSelector('.container')
         let result = await page.evaluate((link) => {
@@ -102,6 +101,7 @@ const link = 'https://clustrmaps.com';
         console.log(JSON.stringify({message: result, error: null}));
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
         process.exit(0);
     }

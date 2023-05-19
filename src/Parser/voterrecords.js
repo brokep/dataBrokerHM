@@ -69,7 +69,6 @@ let state = process.argv[5];
         });
 
         await page.goto('https://voterrecords.com/voters/'+city+'-us/'+firstname+'+'+lastname+'/1');
-        // await page.waitForSelector('#blocker-selector')
         await page.waitForSelector('#page-content-wrapper')
 
         let result = await page.evaluate(() => {
@@ -90,8 +89,7 @@ let state = process.argv[5];
                         break;
                     }
                 }
-                // const indexOfAge = personalDetails.indexOf('Age')
-                // const age = (personalDetails.slice(indexOfAge, indexOfAge + 7)).replace('Age:', ' ').trim();
+
                 const splitedResidentialDetails = (tds[1].textContent).split('\n');
                 let location;
                 for (let i = 0; i < splitedResidentialDetails.length; i++) {
@@ -112,6 +110,7 @@ let state = process.argv[5];
         console.log(JSON.stringify({message: result, error: null}));
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
         process.exit(0);
     }
