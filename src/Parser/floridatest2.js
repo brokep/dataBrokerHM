@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const logger = require('./other/logger');
 let browser, page;
 let firstname = process.argv[2];
 let lastname = process.argv[3];

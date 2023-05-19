@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const logger = require('./other/logger');
 puppeteer.use(StealthPlugin());
 const funcs = require('./functions');
 
