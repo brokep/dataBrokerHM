@@ -17,14 +17,14 @@ let lastname = process.argv[3];
 let city = process.argv[4];
 let state = process.argv[5];
 
-const webpageURL = 'https://freepeopledirectory.com';
+const webpageURL = 'https://www.findpeoplesearch.com/';
 
 (async () => {
     try {
 
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: true,
+            headless: false,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -74,21 +74,22 @@ const webpageURL = 'https://freepeopledirectory.com';
         });
 
         await page.goto(webpageURL)
-        await page.waitForSelector('#form-submit')
-        await page.type('#fname', firstname);
-        await page.type('#lname', lastname);
-        await page.click('#submit-button');
+        await page.waitForSelector('#search-form-container')
+        await page.type('#full_name', firstname + ' ' + lastname);
+        await page.select('select.statefield', state);
+        await page.click('#button-search');
 
-        await page.waitForSelector('.result-card');
+        await page.waitForSelector('.panel');
 
         const results = await page.evaluate(() => {
-            let profileList = Array.from(document.querySelectorAll('.result-card')).slice(0, 10);
+            let profileList = Array.from(document.querySelectorAll('.panel')).slice(0, 10);
             let res = [];
             profileList.forEach((profile) => {
-                let name = profile.querySelector('.card-title')?.textContent?.trim();
-                let address = profile.querySelector('.city')?.textContent?.trim();
-                let link = profile.querySelector('a.card')?.href;
-                res.push({name, address, link});
+                let name = profile.querySelector('.head_name')?.textContent?.split('-')?.[0]?.trim();
+                let age = profile.querySelector('.head_dob')?.textContent?.trim();
+                let address = profile.querySelector('a.addl')?.textContent?.trim();
+                let link = profile.querySelector('a')?.href;
+                res.push({name, address, link, age});
             })
             return res;
         });
