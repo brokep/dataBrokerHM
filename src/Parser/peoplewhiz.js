@@ -17,14 +17,14 @@ let lastname = process.argv[3];
 let city = process.argv[4];
 let state = process.argv[5];
 
-const webpageURL = 'https://emailtracer.com/';
+const webpageURL = 'https://www.peoplewhiz.com/';
 
 (async () => {
     try {
 
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: true,
+            headless: false,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -39,7 +39,7 @@ const webpageURL = 'https://emailtracer.com/';
 
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
-        await page.setDefaultTimeout(30000 * 3);
+        await page.setDefaultTimeout(30000 * 20);
         await page.setRequestInterception(true);
 
         await page.setViewport({
@@ -73,23 +73,19 @@ const webpageURL = 'https://emailtracer.com/';
             password: config.proxy[proxyNumber].pass
         });
 
-        await page.goto(webpageURL)
-        await page.waitForSelector('#firstName')
-        await page.type('#firstName', firstname);
-        await page.type('#lastName', lastname);
-        await page.type('#city', city);
-        await page.select('#state-slct', state);
-        await page.click("#pills-name > form > div:nth-child(2) > div > button");
+        await page.goto(`https://www.peoplewhiz.com/hflow/searching/${firstname}/~/${lastname}/${city}/${state}/~`)
 
-        await page.waitForSelector('.list-result');
+        await page.waitForSelector('.results-table-desktop');
 
         const results = await page.evaluate(() => {
-            let profileList = Array.from(document.querySelectorAll('.list-result')).slice(0, 10);
+            let resultTable = document.querySelector('.results-table-desktop');
+            let profileList = Array.from(resultTable.querySelectorAll('tr')).slice(0, 10);
             let res = [];
             profileList.forEach((profile) => {
                 let name = profile.querySelector('.name')?.textContent?.trim();
                 let address = profile.querySelector('.address')?.textContent?.trim();
-                res.push({name, address})
+                let age = profile.querySelector('.age')?.textContent?.trim();
+                res.push({name, address, age})
             })
             return res;
         });
