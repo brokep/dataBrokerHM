@@ -17,14 +17,14 @@ let lastname = process.argv[3];
 let city = process.argv[4];
 let state = process.argv[5];
 
-const webpageURL = `https://www.searchquarry.com`;
+const webpageURL = `http://americaphonebook.com/`;
 
 (async () => {
     try {
 
         browser = await puppeteer.launch({
             slowMo: 100,
-            headless: false,
+            headless: true,
             devtools: true,
             args: [
                 '--proxy-server=' + config.proxy[proxyNumber].host,
@@ -74,23 +74,31 @@ const webpageURL = `https://www.searchquarry.com`;
         });
 
         await page.goto(webpageURL)
-        await page.waitForSelector('.formrow');
-        await page.type('input[name=fname]', firstname);
-        await page.type('input[name=lname]', lastname);
-        await page.select('select[name=state]', state);
-        await page.click('.bigbutton');
+        await page.waitForSelector('input[name=first]')
+        if(firstname) {
+            await page.type('input[name=first]', firstname);
+        }
+        if(lastname) {
+            await page.type('input[name=last]', lastname);
+        }
+        if(city) {
+            await page.type('input[name=city]', city);
+        }
+        if(state) {
+            await page.type('input[name=state]', state);
+        }
+        await page.click('input[type=submit]');
 
-        await page.waitForSelector('.alt_table');
+        await page.waitForSelector('tr');
 
         const results = await page.evaluate(() => {
-            let resultTable = document.querySelector('.alt_table');
-            let profileList = Array.from(resultTable.querySelectorAll('tr')).slice(1, 10);
+            let profileList = Array.from(document.querySelectorAll('tr')).slice(5, 15);
             let res = [];
             profileList.forEach((profile) => {
-                let name = profile.querySelector('.name')?.textContent?.trim();
-                let age = profile.querySelector('.person_age')?.textContent?.trim();
-                let location = profile.querySelector('td:nth-child(4) > span:nth-child(1)')?.textContent.trim();
-                res.push({name, age, location})
+                let name = profile.querySelector('td:nth-child(2)')?.textContent?.trim();
+                let location = profile.querySelector('td:nth-child(3)')?.textContent?.trim();
+                let link = Array.from(profile.querySelectorAll('a')).find((elem) => elem.textContent.includes('BACKGROUND'))?.href;
+                res.push({name, location, link})
             })
             return res;
         });
