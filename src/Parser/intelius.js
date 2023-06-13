@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const logger = require('./other/logger');
 puppeteer.use(StealthPlugin());
 const funcs = require('./functions');
 
@@ -92,11 +93,10 @@ let state = process.argv[5];
             });
             return res;
         });
-        // await page.waitForSelector('#blocker');
         console.log(JSON.stringify({message: results, error: null}));
     } catch(e){
-        console.error(e);
         console.log(JSON.stringify({message: null, error: e.message}));
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
         process.exit(0);
     }

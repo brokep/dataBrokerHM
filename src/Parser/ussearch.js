@@ -4,6 +4,7 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 const funcs = require('./functions');
+const logger = require('./other/logger');
 
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
@@ -69,7 +70,6 @@ let state = process.argv[5];
         });
 
         await page.goto('https://www.ussearch.com/results/?firstName='+firstname+'&middleInitial=&lastName='+lastname+'&city='+city+'&state='+state+'&age=')
-        // await page.waitForSelector('#blocker-selector')
         await page.waitForSelector('section#people')
 
         const results = await page.evaluate(() => {
@@ -80,7 +80,6 @@ let state = process.argv[5];
             }
             let profileList = allProfileList.slice(0, 10);
             profileList.map(td => {
-                // let linkd = td.querySelector('li.name').getAttribute('href'); // Link not available
                 const locations = Array.from(td.querySelectorAll('li.location > ul > li'))
                 res.push({
                     name: td.querySelector('li.name').textContent.trim(),
@@ -93,6 +92,7 @@ let state = process.argv[5];
         console.log(JSON.stringify({message: results, error: null}));
     } catch (e) {
         console.log(JSON.stringify({message: null, error: e.message}));
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
         process.exit(0);
     }

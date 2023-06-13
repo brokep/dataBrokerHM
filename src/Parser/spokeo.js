@@ -4,6 +4,7 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 const funcs = require('./functions');
+const logger = require('./other/logger');
 
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
@@ -16,7 +17,7 @@ let lastname = process.argv[3];
 let city = process.argv[4];
 let state = process.argv[5];
 
-const link = 'https://www.spokeo.com';
+const link = 'https://spokeo.com';
 
 (async () => {
     try {
@@ -37,7 +38,7 @@ const link = 'https://www.spokeo.com';
 
         await page.setJavaScriptEnabled(true);
         await page.setDefaultNavigationTimeout(0);
-        await page.setDefaultTimeout(30000);
+        await page.setDefaultTimeout(30000 * 10);
         await page.setRequestInterception(true);
 
         await page.setViewport({
@@ -77,29 +78,27 @@ const link = 'https://www.spokeo.com';
         await page.type('#homepage_hero_form  input[name="q"]', firstname+' '+lastname);
         await page.keyboard.press('Enter');
 
-        await page.waitForSelector('.list-view')
+        await page.waitForSelector('.single-column-list-item')
 
-        let result = await page.evaluate((link) => {
-            let titleNodeList = document.querySelectorAll('.list-view div.single-column-list a');
+        let result = await page.evaluate(() => {
+            let titleNodeList = Array.from(document.querySelectorAll('.single-column-list-item')).slice(0, 10);
             let res = [];
-            for (let i = 0; i < titleNodeList.length; i++) {
-                if (i > 10) {
-                    break;
-                }
-                let name = titleNodeList[i].querySelector('.title').textContent.split(', ')[0];
-                res[i] = {
-                    name: name,
-                    link: link + titleNodeList[i].getAttribute('href'),
-                    location: titleNodeList[i].querySelector('div > div > span').textContent,
-                    age: titleNodeList[i].querySelector('.title').textContent.split(', ')[1],
-                };
-            }
+            titleNodeList.forEach((node) => {
+                let [name, age] = node.querySelector('.title')?.textContent?.split(',');
+                let link = node.querySelector('.title')?.href;
+                let location = Array.from(node.querySelectorAll('strong'))
+                    .find((elem) => elem.textContent?.includes('Lived In'))
+                    ?.nextElementSibling
+                    ?.textContent;
+                res.push({name, age, link, location});
+            })
             return res;
         }, link);
 
         console.log(JSON.stringify({message: result, error: null}));
     } catch(e){
         console.log(JSON.stringify({message: null, error: e.message}));
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
         process.exit(0);
     }

@@ -4,6 +4,7 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 const funcs = require('./functions');
+const logger = require('./other/logger');
 
 let rawdata = fs.readFileSync(path.resolve(__dirname, './config.json'));
 let config = JSON.parse(rawdata);
@@ -82,23 +83,18 @@ let state = process.argv[5];
             let res = [];
             titleNodeList.map((td, index) => {
                 const nameAndAgeNode = td.querySelector('h4.record__title');
-                // const locationNode = td.querySelector('li.category.location > ul');
-                // const linkNode = td.querySelector('a');
-
                 const nameAndAge = nameAndAgeNode? nameAndAgeNode.textContent.trim().split(','): [];
                 const name = nameAndAge[0] ? nameAndAge[0].trim() : '';
                 const age = nameAndAge[1] ? nameAndAge[1].trim() : '';
-                // const location = locationNode? locationNode.textContent.trim() : '';
                 const link = td.href;
                 res.push({name, age, link});
             });
             return res;
         });
-        // await page.waitForSelector('#blocker');
         console.log(JSON.stringify({message: results, error: null}));
     } catch(e){
-        console.error(e);
         console.log(JSON.stringify({message: null, error: e.message}));
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
         process.exit(0);
     }

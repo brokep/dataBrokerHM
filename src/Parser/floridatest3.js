@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const logger = require('./other/logger');
 let browser, page;
 let firstname = process.argv[2];
 let lastname = process.argv[3];
@@ -71,6 +72,7 @@ const link = 'https://www.floridaresidentsdirectory.com';
             console.log(JSON.stringify({message: null, error: 'Error inside'}));
         }, 200000);
     } catch(e){
+        logger.error(JSON.stringify(e, Object.getOwnPropertyNames(e)));
     } finally {
     }
 })();
