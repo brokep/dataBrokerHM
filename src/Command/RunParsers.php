@@ -74,7 +74,7 @@ class RunParsers extends Command implements LoggerAwareInterface
 
             $this->process($res);
         } catch (Throwable $e) {
-            $this->log(sprintf("Something terrible: %s. requestId: %s", $e->getMessage(), $res->getId()));
+            $this->logError(sprintf("Something terrible: %s. requestId: %s", $e->getMessage(), $res->getId()));
 
             $res->setStatus(SearchRequestStatus::ERROR);
             $this->searchRequestRepository->save($res);
@@ -108,7 +108,7 @@ class RunParsers extends Command implements LoggerAwareInterface
                 $error = $out['error'] ?? null;
 
                 if ($error !== null) {
-                    $this->log(sprintf(
+                    $this->logError(sprintf(
                             "Error inside parser: %s. Error from: %s. Trying again. Try count: %d",
                             $out['error'],
                             $parser['name'],
@@ -131,7 +131,7 @@ class RunParsers extends Command implements LoggerAwareInterface
                     return;
                 }
             } catch (ProcessFailedException $e) {
-                $this->log('Process can not be executed: ' . $e->getMessage());
+                $this->logError('Process can not be executed: ' . $e->getMessage());
 
                 if ($tryCount >= 3) {
                     $result = SearchResult::forError($parser['name'], $res);
@@ -142,7 +142,7 @@ class RunParsers extends Command implements LoggerAwareInterface
 
                 unset($process);
             } catch (ProcessTimedOutException) {
-                $this->log(sprintf('Process reached timeout (%d). RequestId %d', self::TIMEOUT_3_MIN, $res->getId()));
+                $this->logError(sprintf('Process reached timeout (%d). RequestId %d', self::TIMEOUT_3_MIN, $res->getId()));
 
                 if ($tryCount >= 3) {
                     $result = SearchResult::forError($parser['name'], $res);
@@ -186,6 +186,12 @@ class RunParsers extends Command implements LoggerAwareInterface
     {
         $this->output->writeln($message, OutputInterface::OUTPUT_PLAIN);
         $this->logger->info($message);
+    }
+
+    private function logError(string $message): void
+    {
+        $this->output->writeln($message, OutputInterface::OUTPUT_PLAIN);
+        $this->logger->error($message);
     }
 
     private function getParsersIterator(string $env): Generator

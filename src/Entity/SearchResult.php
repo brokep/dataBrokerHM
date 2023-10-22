@@ -123,10 +123,10 @@ class SearchResult
         $s = new self();
 
         $s
-            ->setFullname((string) $data['name'] ?? '')
-            ->setAge((string) $data['age'] ?? '')
-            ->setAddress((string) $data['location'] ?? '')
-            ->setLink((string) $data['link'] ?? '')
+            ->setFullname((string) ($data['name'] ?? ''))
+            ->setAge((string) ($data['age'] ?? ''))
+            ->setAddress((string) ($data['location'] ?? ''))
+            ->setLink((string) ($data['link'] ?? ''))
             ->setParserName($parserName)
             ->setSearchRequest($result)
             ->setCreatedAt(new DateTime());
