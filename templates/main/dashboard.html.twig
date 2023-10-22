@@ -97,6 +97,8 @@
 
                   {% if search.status|default('-') == 'done' %}
                     <span class="badge bg-success">done</span>
+                  {% elseif search.status|default('-') == 'error' %}
+                    <span class="badge bg-warning">error</span>
                   {% else %}
                     <span class="badge bg-info">in progress</span>
                   {% endif %}
